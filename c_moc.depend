@@ -1,0 +1,34 @@
+# depslib dependency file v1.0
+1697769041 source:f:\codeblocks\c_moc\main.c
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<string.h>
+	"str_list.h"
+	"c_moc.h"
+
+1697769032 source:f:\codeblocks\c_moc\str_list.c
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"str_list.h"
+
+1697771554 f:\codeblocks\c_moc\str_list.h
+	"list.h"
+	<stdbool.h>
+
+1697700070 f:\codeblocks\c_moc\list.h
+	<stdint.h>
+
+1697770169 source:f:\codeblocks\c_moc\c_moc.c
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<stdint.h>
+	<assert.h>
+	"str_list.h"
+
+1697706127 f:\codeblocks\c_moc\c_moc.h
+	<stdbool.h>
+
