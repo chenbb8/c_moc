@@ -27,7 +27,7 @@ enum {
 void strlist_head_init(strlist_t *head);
 
 /**
-* @brief 分割链表
+* @brief 从一个点上分割链表
 * @param[in,out] node 需要操作的链表节点
 * @param[in] point 需要操作的字符串分割点
 * @param[in] size 需要分割出去的大小
@@ -35,7 +35,7 @@ void strlist_head_init(strlist_t *head);
 * @note point指向的字符分配到新分割出的链表里。如果point+size指向的不是当前node->src的最后一个
 *       字符，则本操作可能会产生三个新链表
 */
-void strlist_split(strlist_t *node, const char *point, int size, int label);
+void strlist_split_point(strlist_t *node, const char *point, int size, int label);
 
 /**
 * @brief 根据关键字段分割链表
@@ -62,11 +62,13 @@ bool strlist_is_found_keyword(strlist_t *head, const char *key);
 bool strlist_replace_keyword(strlist_t *head, int label, const char *replace);
 
 /**
-* @brief 在链表尾部追加新节点，填入对应的字符串
+* @brief 在链表尾部追加新节点，填入对应大小的字符串
 * @param[in,out] head 需要操作的链表
 * @param[in] append 需要追加的字符串
+* @param[in] size 需要追加的字符串的大小
+* @note 可以截取字符串的一部分，作为追加的字符串，用size来控制大小
 */
-void strlist_append_str(strlist_t *head, const char *append);
+void strlist_append_str(strlist_t *head, const char *append, int size);
 
 /**
 * @brief 在链表中删除对应节点
@@ -84,6 +86,13 @@ void strlist_del(strlist_t *node);
 void strlist_del_mult(strlist_t *prev, strlist_t *next);
 
 /**
+* @brief 析构链表
+* @param[in,out] head 指向strlist链表头部的指针
+* @note head必须是头指针，否则可能会错误的free真正的头指针
+*/
+void strlist_destruct(strlist_t *head);
+
+/**
 * @brief 计算链表中包含的字符串的总长度
 * @param[in] head 指向strlist链表头部的指针
 * @return 计算出的字符串总长度
@@ -97,6 +106,15 @@ int strlist_total_slen(strlist_t *head);
 * @return 计算出的有效节点的数量
 */
 int strlist_total_numb(strlist_t *head);
+
+/**
+* @brief 根据索引号取得队列中对应的节点
+* @param[in] head 指向strlist链表头部的指针
+* @param[in] idx 从首个有效节点开始算的索引号
+* @return 取得的节点，如果是NULL则代表失败
+* @note idx为0对应strlist_fist(head),idx为strlist_total_numb()-1，对应strlist_last(head)
+*/
+strlist_t * strlist_get_with_idx(strlist_t *head, int idx);
 
 /**
 * @brief 获取链表中的首节点
@@ -129,6 +147,25 @@ int strlist_total_numb(strlist_t *head);
 */
 #define strlist_for_each_entry(pos, head) \
     list_for_each_entry(pos, &(head)->list, list)
+
+/**
+* @brief 正向遍历链表，并且遍历期间当前节点可能被分裂或者修改
+* @param[out] pos 用于遍历链表的strlist指针
+* @param[in] head 指向strlist链表头部的指针
+*/
+#if 1
+#define strlist_for_each_entry_fix(pos, head) \
+    pos = list_first_entry(&(head)->list, typeof(*pos), list);\
+    for (typeof(&pos->list) pos_prev = pos->list.prev;	\
+	     !list_entry_is_head(pos, &(head)->list, list);			\
+	     (pos = CONTAINER_OF(pos_prev->next->next, typeof(*(pos)), list)),(pos_prev = pos->list.prev))
+#else
+#define strlist_for_each_entry_fix(pos, head) \
+    struct list_node* pos_prev = &(head)->list;\
+    for ((pos = list_first_entry(&(head)->list, typeof(*pos), list)),(pos_prev = pos->list.prev);	\
+	     !list_entry_is_head(pos, &(head)->list, list);			\
+	     (pos = CONTAINER_OF(pos_prev->next->next, typeof(*(pos)), list)),(pos_prev = pos->list.prev))
+#endif
 
 #endif
 

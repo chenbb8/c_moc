@@ -48,7 +48,7 @@ void strlist_head_init(strlist_t *head)
 //    }
 //}
 /**
-* @brief 分割链表
+* @brief 从一个点上分割链表
 * @param[in,out] node 需要操作的链表节点
 * @param[in] point 需要操作的字符串分割点
 * @param[in] size 需要分割出去的大小
@@ -56,7 +56,7 @@ void strlist_head_init(strlist_t *head)
 * @note point指向的字符分配到新分割出的链表里。如果point+size指向的不是当前node->src的最后一个
 *       字符，则本操作可能会产生三个新链表
 */
-void strlist_split(strlist_t *node, const char *point, int size, int label)
+void strlist_split_point(strlist_t *node, const char *point, int size, int label)
 {
     if ( (node == NULL) || (node->str == NULL) ||(point == NULL) || (size == 0) ) {
         return;
@@ -130,16 +130,42 @@ bool strlist_is_found_keyword(strlist_t *head, const char *key);
 * @param[in] label 需要操作的label值
 * @return 是否有替换
 */
-bool strlist_replace_keyword(strlist_t *head, int label, const char *replace);
+bool strlist_replace_keyword(strlist_t *head, int label, const char *replace)
+{
+    assert(head!=NULL);
+    assert(replace!=NULL);
+
+    bool retvol = false;
+    strlist_t *pos;
+    int len = strlen(replace);
+//    if (len == 0) {//有可能需要将原本的字符串变成空字符
+//        return false;
+//    }
+    strlist_for_each_entry(pos, head)
+    {
+        if (pos->label != label) {
+            continue;
+        }
+        if (pos->str != NULL) {
+            STRLIST_FREE(pos->str);
+        }
+        pos->str = STRLIST_MALLOC(len+1);
+        memcpy(pos->str, replace, len+1);
+        retvol = true;
+    }
+    return retvol;
+}
+
 
 /**
-* @brief 在链表尾部追加新节点，填入对应的字符串
+* @brief 在链表尾部追加新节点，填入对应大小的字符串
 * @param[in,out] head 需要操作的链表
 * @param[in] append 需要追加的字符串
+* @param[in] size 需要追加的字符串的大小
+* @note 可以截取字符串的一部分，作为追加的字符串，用size来控制大小
 */
-void strlist_append_str(strlist_t *head, const char *append)
+void strlist_append_str(strlist_t *head, const char *append, int size)
 {
-    int size = strlen(append);
     strlist_t *new_node = STRLIST_MALLOC(sizeof(strlist_t));
     new_node->str = STRLIST_MALLOC(size+1);
 
@@ -183,6 +209,19 @@ void strlist_del_mult(strlist_t *prev, strlist_t *next)
 }
 
 /**
+* @brief 析构链表
+* @param[in,out] head 指向strlist链表头部的指针
+* @note head必须是头指针，否则可能会错误的free真正的头指针
+*/
+void strlist_destruct(strlist_t *head)
+{
+    if (list_empty(&head->list)) {
+        return;
+    }
+    strlist_del_mult(strlist_fist(head), strlist_last(head));
+}
+
+/**
 * @brief 计算链表中包含的字符串的总长度
 * @param[in] head 指向strlist链表头部的指针
 * @return 计算出的字符串总长度
@@ -206,7 +245,33 @@ int strlist_total_slen(strlist_t *head)
 */
 int strlist_total_numb(strlist_t *head)
 {
-
+    strlist_t *pos;
+    int numb = 0;
+    strlist_for_each_entry(pos, head)
+    {
+        numb++;
+    }
+    return numb;
 }
 
+/**
+* @brief 根据索引号取得队列中对应的节点
+* @param[in] head 指向strlist链表头部的指针
+* @param[in] idx 从首个有效节点开始算的索引号
+* @return 取得的节点，如果是NULL则代表失败
+* @note idx为0对应strlist_fist(head),idx为strlist_total_numb()-1，对应strlist_last(head)
+*/
+strlist_t * strlist_get_with_idx(strlist_t *head, int idx)
+{
+    strlist_t *pos = NULL;
+    int i = 0;
+    strlist_for_each_entry(pos, head)
+    {
+        if (i++ == idx)
+        {
+            return pos;
+        }
+    }
+    return pos;
+}
 

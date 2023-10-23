@@ -153,11 +153,6 @@ static inline int list_empty(const struct list_node *head)
 	CONTAINER_OF((ptr)->prev, type, member)
 
 /**
- * list_next_entry - get the next element in list
- * @pos:	the type * to cursor
- * @member:	the name of the list_head within the struct.
- */
-/**
 * @brief 从链表中获取下一个节点所在结构体的指针
 * @param[in] pos 指向当前节点所在结构体的指针
 * @param[in] member 链表在该结构体中的成员名

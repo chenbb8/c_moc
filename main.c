@@ -17,16 +17,19 @@ strlist_t head = {
     .str = NULL
 };
 
-int main1()
-{
-    //cmoc_preprocess_file("F:\\project\\280\\ZW280\\ZW280_c_single_slot\\Projects\\USER\\function.c");
-    cmoc_preprocess_file("test_sig.c");
-}
 
 int main()
 {
+    //cmoc_preprocess_file("F:\\project\\280\\ZW280\\ZW280_c_single_slot\\Projects\\USER\\function.c");
+    cmoc_preprocess_file("test_sig.c");
+    cmoc_generation_and_save(NULL);
+    return 0;
+}
+
+int main1()
+{
     int len = strlen(text);
-    strlist_append_str(&head, text);
+    strlist_append_str(&head, text, len);
 
     strlist_t *pos;
     pos = strlist_last(&head);
@@ -36,7 +39,7 @@ int main()
     }
 
     pos = strlist_fist(&head);
-    strlist_split(pos, &pos->str[0], 4, STRLIST_LABEL_AA);
+    strlist_split_point(pos, &pos->str[0], 4, STRLIST_LABEL_AA);
 
     strlist_for_each_entry(pos, &head)
     {
@@ -59,6 +62,7 @@ int main()
     if (list_empty(&head.list)) {
         printf("list is empty\n");
     }
+    return 0;
 }
 
 //int main()
