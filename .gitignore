@@ -30,3 +30,5 @@ output
 *.diff
 *.patch
 *.rej
+signal_slot_dec.h
+signal_slot_def.h

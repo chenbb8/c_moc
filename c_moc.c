@@ -8,6 +8,12 @@
 #define NAME_PARAM_MAX              1024
 #define SIGNAL_SLOT_NUMB_MAX        1024
 
+#if defined(__linux__)
+#define NL "\n"
+#else
+#define NL "\n"/*虽然网上说，windows的换行是\r\n，但在win10上读取一个普通txt，可以观察到换行符是\n*/
+#endif
+
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
     CMOC_LABEL_COMMA,//逗号
@@ -27,7 +33,10 @@ signal_slot_info_t signal_info[SIGNAL_SLOT_NUMB_MAX];//预处理所记录的signal信息
 int slot_numb = 0;//当前有多少slot信息
 int signal_numb = 0;//当前有多少signal信息
 
-extern const char *signal_def;
+extern const char *signal_define;
+extern const char *signal_declaration;
+extern const char *slot_define;
+extern const char *slot_declaration;
 
 #define LINE_MAX 1024*1024/*一行最多几个字节*/
 
@@ -317,8 +326,11 @@ static char* cmoc_param_list_2_str_no_type(char *param_str, int size_str, strlis
 * @param[in] keyword 需要匹配的关键字符串
 * @param[out] info 存放提取出来的函数info
 * @param[in,out] numb 当前有效的info数量
+* @return 是否有对应函数
+*   @retval true 找到对应函数
+*   @retval false 没找到对应函数
 */
-static void cmoc_extract_keyword(const char *src, const char *keyword, signal_slot_info_t *info, int *numb)
+static bool cmoc_extract_keyword(const char *src, const char *keyword, signal_slot_info_t *info, int *numb)
 {
     assert(src != NULL);
     assert(keyword != NULL);
@@ -329,30 +341,30 @@ static void cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
     int key_len = strlen(keyword);
 
     if ((len == 0)||(key_len == 0)) {
-        return;
+        return false;
     }
 
     //查找关键字signal或者slot
     const char *pkey = cmoc_find_keyword_first(src, keyword);//在字符串开始的地方查找对应的字符串(忽略空格与TAB)
     if (pkey == NULL) {
-        return;
+        return false;
     }
     //关键字后应该是空格或者tab
     if ( !((pkey[key_len] == ' ')||(pkey[key_len] == '\t')) )
     {
-        return;
+        return false;
     }
 
     //查找'('
     const char *left = cmoc_find_keyword(pkey, "(");
     if (left == NULL) {
-        return;
+        return false;
     }
 
     //查找')'
     const char *right = cmoc_find_keyword(left, ")");
     if (right == NULL) {
-        return;
+        return false;
     }
 
     //截取函数名
@@ -361,7 +373,7 @@ static void cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
     {
         if (--name_read <= pkey+key_len)
         {
-            return;//从pkey到'('之间全是空格
+            return false;//从pkey到'('之间全是空格
         }
     }
     const char *name_end = name_read;//指向函数名的最后一个字符
@@ -373,7 +385,7 @@ static void cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
         }
         if (--name_read < pkey+key_len)//超出范围
         {
-            return;
+            return false;
         }
     }
     memcpy(info[*numb].name, name_read+1, name_end-name_read);
@@ -386,6 +398,7 @@ static void cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
         cmoc_param_str_2_list(&info[*numb].param_list, left+1, right-left-1);
     }
     (*numb)++;
+    return true;
 }
 
 /**
@@ -397,6 +410,7 @@ bool cmoc_preprocess_file(const char *file_name)
 {
     char line_str[LINE_MAX];
     int i;
+    bool ret = false;
 
     FILE* fp = fopen(file_name, "r");
 
@@ -410,37 +424,31 @@ bool cmoc_preprocess_file(const char *file_name)
     {
 //        pstr =
 //        printf("%s", line_str);
-        cmoc_extract_keyword(line_str, "slot", slot_info, &slot_numb);
-        cmoc_extract_keyword(line_str, "signal", signal_info, &signal_numb);
+        if (cmoc_extract_keyword(line_str, "slot", slot_info, &slot_numb)) {
+            ret = true;
+        }
+        if (cmoc_extract_keyword(line_str, "signal", signal_info, &signal_numb)) {
+            ret = true;
+        }
     }
 
-    char param_str[NAME_PARAM_MAX];
-    for (i = 0; i < slot_numb; i++)
-    {
-        printf("slot %2d: void %s(", i, slot_info[i].name);
-        printf("%s", cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
-        printf(")\n");
-    }
+    //TEST:打印检索出来的signal和slot
+//    char param_str[NAME_PARAM_MAX];
+//    for (i = 0; i < slot_numb; i++)
+//    {
+//        printf("slot %2d: void %s(", i, slot_info[i].name);
+//        printf("%s", cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
+//        printf(")\n");
+//    }
+//
+//    for (i = 0; i < signal_numb; i++)
+//    {
+//        printf("signal %2d: void %s(", i, signal_info[i].name);
+//        printf("%s", cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
+//        printf(")\n");
+//    }
 
-    for (i = 0; i < signal_numb; i++)
-    {
-        printf("signal %2d: void %s(", i, signal_info[i].name);
-        printf("%s", cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
-        printf(")\n");
-    }
-
-    //
-
-
-
-    //TEST
-    const char *test_str = "    	 			 asddddaaaaddad";
-    const char *pResult = cmoc_find_keyword(test_str, "aaad");
-    if (pResult != NULL)
-    {
-        printf("%s\n", pResult);
-    }
-	return true;
+	return ret;
 }
 
 /**
@@ -498,58 +506,182 @@ static void cmoc_info_2_strlist(strlist_t *out_list, const signal_slot_info_t* i
 }
 
 /**
+* @brief 合并路径和文件名
+* @param[out] target_str 保存生成文件的路径+文件名的缓冲区
+* @param[in] target_size_max 输出缓冲区的大小
+* @param[in] dir 文件的路径
+* @param[in] file_name 文件名
+* @return 合并好的路径和文件名字符串
+*/
+static char *cmoc_path_name(char *target_str, int target_size_max, const char *dir, const char *file_name)
+{
+    assert(target_str!=NULL);
+    assert(file_name!=NULL);
+    assert(strlen(file_name) < 50);
+
+    int dir_len = 0;
+
+    if ((dir != NULL) && (dir_len = strlen(dir),(dir_len < target_size_max-50)))
+    {
+        strcpy(target_str, dir);
+        if (target_str[dir_len-1]=='\\'||target_str[dir_len-1]=='/')
+        {
+            strcpy(&target_str[dir_len], file_name);
+        }
+        else
+        {
+            strcpy(&target_str[dir_len-1], file_name);
+        }
+    }
+    else{
+        strcpy(target_str, file_name);
+    }
+    return target_str;
+}
+
+/**
 * @brief 将预处理提取的关键字，生成对应的文件
 * @param[in] save_dir 保存生成文件的路径
 */
 void cmoc_generation_and_save(const char *save_dir)
 {
-    (void)save_dir;
     int i;
+    char target_name[1024];
+    const char *cstr;
+    FILE* pfin;
 
-//    printf("%s", signal_def);
+//    printf("%s", signal_define);
 
     strlist_t *pos;
     strlist_t gen_list;
 
-    strlist_head_init(&gen_list);
+    //保存定义文件
+    cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_def.h");
+    pfin = fopen(target_name, "w+");
+    if (pfin == NULL)
+	{
+		perror("fopen fail:");
+		exit(-1);
+	}
 
-//    for (i = 0; i < slot_numb; i++)
-//    {
-//        cmoc_info_2_strlist(&gen_list, &slot_info[i], signal_def);
-//        strlist_for_each_entry(pos, &gen_list)
-//        {
-//            if (pos->str != NULL) {
-//                printf("%s", pos->str);
-//            }
-//        }
-//        strlist_destruct(&gen_list);
-//    }
+    cstr = "#ifndef _SIGNAL_SLOT_DEF_H_"NL"#define _SIGNAL_SLOT_DEF_H_"NL NL"#include \"signal_slot.h\""NL NL NL;
+    fwrite(cstr, 1, strlen(cstr), pfin);
+
+    strlist_head_init(&gen_list);
 
     for (i = 0; i < signal_numb; i++)
     {
-        cmoc_info_2_strlist(&gen_list, &signal_info[i], signal_def);
+        cmoc_info_2_strlist(&gen_list, &signal_info[i], signal_define);
         strlist_for_each_entry(pos, &gen_list)
         {
             if (pos->str != NULL) {
-                printf("%s", pos->str);
+                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                //printf("%s", pos->str);
             }
         }
         strlist_destruct(&gen_list);
     }
+
+    for (i = 0; i < slot_numb; i++)
+    {
+        cmoc_info_2_strlist(&gen_list, &slot_info[i], slot_define);
+        strlist_for_each_entry(pos, &gen_list)
+        {
+            if (pos->str != NULL) {
+                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                //printf("%s", pos->str);
+            }
+        }
+        strlist_destruct(&gen_list);
+    }
+
+    cstr = "#endif"NL;
+    fwrite(cstr, 1, strlen(cstr), pfin);
+    fflush(pfin);
+    fclose(pfin);
+
+    //保存声明文件
+    cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_dec.h");
+    pfin = fopen(target_name, "w+");
+    if (pfin == NULL)
+	{
+		perror("fopen fail:");
+		exit(-1);
+	}
+
+    cstr = "#ifndef _SIGNAL_SLOT_DEC_H_"NL"#define _SIGNAL_SLOT_DEC_H_"NL NL NL;
+    fwrite(cstr, 1, strlen(cstr), pfin);
+
+    strlist_head_init(&gen_list);
+
+    for (i = 0; i < slot_numb; i++)
+    {
+        cmoc_info_2_strlist(&gen_list, &slot_info[i], slot_declaration);
+        strlist_for_each_entry(pos, &gen_list)
+        {
+            if (pos->str != NULL) {
+                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                //printf("%s", pos->str);
+            }
+        }
+        strlist_destruct(&gen_list);
+    }
+
+    for (i = 0; i < signal_numb; i++)
+    {
+        cmoc_info_2_strlist(&gen_list, &signal_info[i], signal_declaration);
+        strlist_for_each_entry(pos, &gen_list)
+        {
+            if (pos->str != NULL) {
+                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                //printf("%s", pos->str);
+            }
+        }
+        strlist_destruct(&gen_list);
+    }
+    cstr = "#endif"NL;
+    fwrite(cstr, 1, strlen(cstr), pfin);
+    fflush(pfin);
+    fclose(pfin);
 }
 
-const char *signal_def =
-"typedef void (*$NAME_t)(struct _signal_slot_node * sender$PARAM_TYPE_NAME);\n\
-\n\
-void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);\n\
-struct _signal_slot_node $NAME_head = {\n\
-    .self_node = USER_LIST_HEAD_INIT($NAME_head.self_node),\n\
-    .signal_node = USER_LIST_HEAD_INIT($NAME_head.signal_node),\n\
-    .func = $NAME,\n\
-    .signals = NULL,\n\
-};\n\
-void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME)\n\
-{\n\
-    SIGNAL_SEND($NAME$PARAM_NAME);\n\
-}\n\n\n";
+#define SIGNAL_DEF_STR \
+"/*define signal: void $NAME($PARAM_TYPE_NAME)*/"NL\
+"typedef void (*$NAME_t)(struct _signal_slot_node * sender$PARAM_TYPE_NAME);"NL\
+"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"struct _signal_slot_node $NAME_head = {"NL\
+"    .self_node = USER_LIST_HEAD_INIT($NAME_head.self_node),"NL\
+"    .signal_node = USER_LIST_HEAD_INIT($NAME_head.signal_node),"NL\
+"    .func = $NAME,"NL\
+"    .signals = NULL,"NL\
+"};"NL\
+"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME)"NL\
+"{"NL\
+"    SIGNAL_SEND($NAME$PARAM_NAME);"NL\
+"}" NL NL NL
+const char *signal_define = SIGNAL_DEF_STR;
+
+
+#define SIGNAL_DEC_STR \
+"/*declaration signal: void $NAME($PARAM_TYPE_NAME)*/"NL\
+"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"extern struct _signal_slot_node $NAME_head;"NL NL NL
+const char *signal_declaration = SIGNAL_DEC_STR;
+
+#define SLOT_DEF_STR \
+"/*define slot: void $NAME($PARAM_TYPE_NAME)*/"NL\
+"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"struct _signal_slot_node $NAME_head = { "NL\
+"    .self_node = USER_LIST_HEAD_INIT($NAME_head.self_node), "NL\
+"    .signal_node = USER_LIST_HEAD_INIT($NAME_head.signal_node), "NL\
+"    .func = $NAME, "NL\
+"    .signals = NULL, "NL\
+"};"NL NL NL
+const char *slot_define = SLOT_DEF_STR;
+
+#define SLOT_DEC_STR \
+"/*declaration slot: void $NAME($PARAM_TYPE_NAME)*/"NL\
+"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"extern struct _signal_slot_node $NAME_head;"NL NL NL
+const char *slot_declaration = SLOT_DEC_STR;
 

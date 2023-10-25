@@ -16,37 +16,6 @@ void strlist_head_init(strlist_t *head)
     head->str = NULL;
 }
 
-///**
-//* @brief 模式匹配，搜索字符串
-//* @param[in] src 需要被查找的字符串
-//* @param[in] pattern 需要匹配的
-//* @return
-//*   @retval NULL 没有匹配到
-//*   @retval 非零值 在src中匹配到的字符串的地址
-//*/
-//static char* strlist_pattern(char *src, char *pattern)
-//{
-//    if ((src == NULL)||(pattern == NULL)) {
-//        return NULL;
-//    }
-//}
-//
-///**
-//* @brief 根据关键字分割链表
-//* @param[in,out] head 需要操作的链表
-//* @param[in] key 所使用的关键字符串
-//* @param[in] label 分割后关键字符串所在节点的label值
-//*/
-//void strlist_split_keyword(strlist_t *head, const char *key, int label)
-//{
-//    strlist_t *pos;
-//
-//    list_for_each_entry(pos, (&(head->list)), list)
-//    {
-//        *pat = strlist_pattern(pos->str, key);
-//        if (pat != NULL)
-//    }
-//}
 /**
 * @brief 从一个点上分割链表
 * @param[in,out] node 需要操作的链表节点

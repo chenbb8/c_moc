@@ -31,9 +31,20 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="c_moc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="c_moc.h" />
+		<Unit filename="dec.h" />
+		<Unit filename="def.h" />
+		<Unit filename="list.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="str_list.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="str_list.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
