@@ -11,20 +11,13 @@
 
 #define CONFIG_NAME "cmoc_conf.txt"
 
-enum {
-    STRLIST_LABEL_AA = STRLIST_LABEL_USER,
-    STRLIST_LABEL_BB
-};
-
-char text[] = "123456789abcdefg";
-strlist_t head = {
-    .list = LIST_HEAD_INIT(head.list),
-    .label = STRLIST_LABEL_NONE,
-    .str = NULL
-};
-
-
-void filesearch(char* path, const char* extension, strlist_t *filelist)
+/**
+* @brief 循环查找目录下的对应扩展名的文件
+* @param[in] path 需要查找的目录
+* @param[in] extension 需要查找的文件扩展名
+* @param[out] filelist 查找到的文件列表
+*/
+void filesearch(const char* path, const char* extension, strlist_t *filelist)
 {
     struct _finddata_t filefind;
     char* tail = "\\*.*";
@@ -81,41 +74,6 @@ void filesearch(char* path, const char* extension, strlist_t *filelist)
     }
 }
 
-void print_key(char **key)
-{
-    int i=0;
-
-    printf("all key is:\n");
-    //遍历
-    while(key[i] != NULL)
-    {
-        printf("key : %s\n",key[i]);
-        ++i;
-    }
-}
-
-void print_all(CONF_VALUE **value)
-{
-    int i;
-    int j;
-
-    printf("all:\n");
-    //遍历
-    for(i=0;value[i] != NULL;++i)
-    {
-        j=0;
-        printf("key:%s ",value[i]->key);
-
-        while(value[i]->value[j] != NULL)
-        {
-            printf(" value:%s",value[i]->value[j]);
-            ++j;
-        }
-
-        printf("\n");
-    }
-}
-
 /**
 * @brief 创建默认的配置文件
 */
@@ -157,7 +115,9 @@ void config_backup_and_create(void)
     config_creat();
 }
 
-//获取配置文件中的路径
+/**
+* @brief 获取配置文件中记录的路径
+*/
 void config_get_dir(strlist_t *path_list)
 {
     CONF *conf; //需要的数据结构
@@ -250,11 +210,12 @@ int main(int argc, char *argv[])
         chdir(argv[0]);
     }
 
+    //初始化链表
     strlist_head_init(&h_list);
     strlist_head_init(&c_list);
     strlist_head_init(&path_list);
 
-    config_get_dir(&path_list);//获取配置文件中的路径
+    config_get_dir(&path_list);//获取配置文件中记录的路径
 
     //根据配置文件中的路径获取源文件和头文件列表
     strlist_for_each_entry(pos, &path_list)
@@ -289,56 +250,3 @@ int main(int argc, char *argv[])
 //    system("pause");
     return 0;
 }
-
-int main1()
-{
-    int len = strlen(text);
-    strlist_append_str(&head, text, len);
-
-    strlist_t *pos;
-    pos = strlist_last(&head);
-//    strlist_for_each_entry(pos, &head)
-    {
-        printf("%s\n", pos->str);
-    }
-
-    pos = strlist_fist(&head);
-    strlist_split_point(pos, &pos->str[0], 4, STRLIST_LABEL_AA);
-
-    strlist_for_each_entry(pos, &head)
-    {
-        printf("%s\n", pos->str);
-    }
-
-    int total_len = strlist_total_slen(&head);
-    char *idx = NULL, *total_str = NULL;
-    total_str = malloc(total_len+1);
-    idx = total_str;
-
-    strlist_for_each_entry(pos, &head)
-    {
-        len = strlen(pos->str);
-        memcpy(idx, pos->str, len);
-        idx += len;
-    }
-    strlist_del_mult(strlist_fist(&head), strlist_last(&head));
-    printf("%s\n", total_str);
-    if (list_empty(&head.list)) {
-        printf("list is empty\n");
-    }
-    return 0;
-}
-
-//int main()
-//{
-//    HANDLE hMutex = CreateMutex(NULL, FALSE, "c_moc.mutex");
-//
-//
-//    WaitForSingleObject(hMutex, 60*1000L);
-//    printf("Hello world!\n");
-//    Sleep(10*1000);
-//    printf("process over!\n");
-//    ReleaseMutex(hMutex);
-////    system("pause");
-//    return 0;
-//}
