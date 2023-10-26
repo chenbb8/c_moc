@@ -11,147 +11,147 @@ typedef struct {
 } strlist_t;
 
 enum {
-    STRLIST_LABEL_NONE,/*³õÊ¼»¯strlist½ÚµãºóµÄÄ¬ÈÏÖµ*/
-    STRLIST_LABEL_USER,/*ÓÃ»§labelÆğÊ¼Öµ*/
+    STRLIST_LABEL_NONE,/*åˆå§‹åŒ–strlistèŠ‚ç‚¹åçš„é»˜è®¤å€¼*/
+    STRLIST_LABEL_USER,/*ç”¨æˆ·labelèµ·å§‹å€¼*/
 };
 
-//Ä¬ÈÏ·ÇheadµÄ½Úµã¶¼ÊÇÔÚÄÚ²¿×Ô¶¯¶¯Ì¬·ÖÅä£¬½ÚµãÏÂÈç¹ûÓĞ×Ö·û´®£¬ÔòÒ²ÊÇÔÚÄÚ²¿×Ô¶¯·ÖÅä
+//é»˜è®¤éheadçš„èŠ‚ç‚¹éƒ½æ˜¯åœ¨å†…éƒ¨è‡ªåŠ¨åŠ¨æ€åˆ†é…ï¼ŒèŠ‚ç‚¹ä¸‹å¦‚æœæœ‰å­—ç¬¦ä¸²ï¼Œåˆ™ä¹Ÿæ˜¯åœ¨å†…éƒ¨è‡ªåŠ¨åˆ†é…
 #define STRLIST_MALLOC      malloc
 #define STRLIST_FREE        free
 
 /**
-* @brief ³õÊ¼»¯strlistµÄÍ·Ö¸Õë
-* @param[in,out] head ĞèÒª²Ù×÷µÄÁ´±í
-* @note ±¾º¯Êı²»»áÔÚÄÚ²¿new½ÚµãºÍ×Ö·û´®£¨Ò²¾ÍÊÇËµ±ğµÄº¯ÊıºÜ¿ÉÄÜ»áÕâÑù×ö£©
+* @brief åˆå§‹åŒ–strlistçš„å¤´æŒ‡é’ˆ
+* @param[in,out] head éœ€è¦æ“ä½œçš„é“¾è¡¨
+* @note æœ¬å‡½æ•°ä¸ä¼šåœ¨å†…éƒ¨newèŠ‚ç‚¹å’Œå­—ç¬¦ä¸²ï¼ˆä¹Ÿå°±æ˜¯è¯´åˆ«çš„å‡½æ•°å¾ˆå¯èƒ½ä¼šè¿™æ ·åšï¼‰
 */
 void strlist_head_init(strlist_t *head);
 
 /**
-* @brief ´ÓÒ»¸öµãÉÏ·Ö¸îÁ´±í
-* @param[in,out] node ĞèÒª²Ù×÷µÄÁ´±í½Úµã
-* @param[in] point ĞèÒª²Ù×÷µÄ×Ö·û´®·Ö¸îµã
-* @param[in] size ĞèÒª·Ö¸î³öÈ¥µÄ´óĞ¡
-* @param[in] label ·Ö¸îºó¹Ø¼ü×Ö·û´®ËùÔÚ½ÚµãµÄlabelÖµ
-* @note pointÖ¸ÏòµÄ×Ö·û·ÖÅäµ½ĞÂ·Ö¸î³öµÄÁ´±íÀï¡£Èç¹ûpoint+sizeÖ¸ÏòµÄ²»ÊÇµ±Ç°node->srcµÄ×îºóÒ»¸ö
-*       ×Ö·û£¬Ôò±¾²Ù×÷¿ÉÄÜ»á²úÉúÈı¸öĞÂÁ´±í
+* @brief ä»ä¸€ä¸ªç‚¹ä¸Šåˆ†å‰²é“¾è¡¨
+* @param[in,out] node éœ€è¦æ“ä½œçš„é“¾è¡¨èŠ‚ç‚¹
+* @param[in] point éœ€è¦æ“ä½œçš„å­—ç¬¦ä¸²åˆ†å‰²ç‚¹
+* @param[in] size éœ€è¦åˆ†å‰²å‡ºå»çš„å¤§å°
+* @param[in] label åˆ†å‰²åå…³é”®å­—ç¬¦ä¸²æ‰€åœ¨èŠ‚ç‚¹çš„labelå€¼
+* @note pointæŒ‡å‘çš„å­—ç¬¦åˆ†é…åˆ°æ–°åˆ†å‰²å‡ºçš„é“¾è¡¨é‡Œã€‚å¦‚æœpoint+sizeæŒ‡å‘çš„ä¸æ˜¯å½“å‰node->srcçš„æœ€åä¸€ä¸ª
+*       å­—ç¬¦ï¼Œåˆ™æœ¬æ“ä½œå¯èƒ½ä¼šäº§ç”Ÿä¸‰ä¸ªæ–°é“¾è¡¨
 */
 void strlist_split_point(strlist_t *node, const char *point, int size, int label);
 
 /**
-* @brief ¸ù¾İ¹Ø¼ü×Ö¶Î·Ö¸îÁ´±í
-* @param[in,out] node ĞèÒª²Ù×÷µÄÁ´±í½Úµã
-* @param[in] key_s/key_e ËùÊ¹ÓÃµÄ¹Ø¼ü×Ö¶ÎµÄÆğÊ¼ºÍ½áÊø×Ö·û´®µÄÖ¸Õë
-* @param[in] label ·Ö¸îºó¹Ø¼ü×Ö·û×Ö¶ÎËùÔÚ½ÚµãµÄlabelÖµ
+* @brief æ ¹æ®å…³é”®å­—æ®µåˆ†å‰²é“¾è¡¨
+* @param[in,out] node éœ€è¦æ“ä½œçš„é“¾è¡¨èŠ‚ç‚¹
+* @param[in] key_s/key_e æ‰€ä½¿ç”¨çš„å…³é”®å­—æ®µçš„èµ·å§‹å’Œç»“æŸå­—ç¬¦ä¸²çš„æŒ‡é’ˆ
+* @param[in] label åˆ†å‰²åå…³é”®å­—ç¬¦å­—æ®µæ‰€åœ¨èŠ‚ç‚¹çš„labelå€¼
 */
 void strlist_split_section(strlist_t *node, const char *key_s,  const char *key_e, int label);
 
 /**
-* @brief ²éÕÒÊÇ·ñÓĞ½ÚµãµÄ×Ö·û´®Óë¹Ø¼ü×Ö·û´®ÏàÍ¬
-* @param[in,out] head ĞèÒª²Ù×÷µÄÁ´±í
-* @param[in] key ËùÊ¹ÓÃµÄ¹Ø¼ü×Ö·û´®
-* @return ÊÇ·ñ²éÕÒµ½
+* @brief æŸ¥æ‰¾æ˜¯å¦æœ‰èŠ‚ç‚¹çš„å­—ç¬¦ä¸²ä¸å…³é”®å­—ç¬¦ä¸²ç›¸åŒ
+* @param[in,out] head éœ€è¦æ“ä½œçš„é“¾è¡¨
+* @param[in] key æ‰€ä½¿ç”¨çš„å…³é”®å­—ç¬¦ä¸²
+* @return æ˜¯å¦æŸ¥æ‰¾åˆ°
 */
 bool strlist_is_found_keyword(strlist_t *head, const char *key);
 
 /**
-* @brief ½«Á´±íÖĞ¶ÔÓ¦labelÖµËùÔÚµÄ½ÚµãµÄ×Ö·û´®Ìæ»»µô
-* @param[in,out] head ĞèÒª²Ù×÷µÄÁ´±í
-* @param[in] label ĞèÒª²Ù×÷µÄlabelÖµ
-* @return ÊÇ·ñÓĞÌæ»»
+* @brief å°†é“¾è¡¨ä¸­å¯¹åº”labelå€¼æ‰€åœ¨çš„èŠ‚ç‚¹çš„å­—ç¬¦ä¸²æ›¿æ¢æ‰
+* @param[in,out] head éœ€è¦æ“ä½œçš„é“¾è¡¨
+* @param[in] label éœ€è¦æ“ä½œçš„labelå€¼
+* @return æ˜¯å¦æœ‰æ›¿æ¢
 */
 bool strlist_replace_keyword(strlist_t *head, int label, const char *replace);
 
 /**
-* @brief ÔÚÁ´±íÎ²²¿×·¼ÓĞÂ½Úµã£¬ÌîÈë¶ÔÓ¦´óĞ¡µÄ×Ö·û´®
-* @param[in,out] head ĞèÒª²Ù×÷µÄÁ´±í
-* @param[in] append ĞèÒª×·¼ÓµÄ×Ö·û´®
-* @param[in] size ĞèÒª×·¼ÓµÄ×Ö·û´®µÄ´óĞ¡
-* @note ¿ÉÒÔ½ØÈ¡×Ö·û´®µÄÒ»²¿·Ö£¬×÷Îª×·¼ÓµÄ×Ö·û´®£¬ÓÃsizeÀ´¿ØÖÆ´óĞ¡
+* @brief åœ¨é“¾è¡¨å°¾éƒ¨è¿½åŠ æ–°èŠ‚ç‚¹ï¼Œå¡«å…¥å¯¹åº”å¤§å°çš„å­—ç¬¦ä¸²
+* @param[in,out] head éœ€è¦æ“ä½œçš„é“¾è¡¨
+* @param[in] append éœ€è¦è¿½åŠ çš„å­—ç¬¦ä¸²
+* @param[in] size éœ€è¦è¿½åŠ çš„å­—ç¬¦ä¸²çš„å¤§å°
+* @note å¯ä»¥æˆªå–å­—ç¬¦ä¸²çš„ä¸€éƒ¨åˆ†ï¼Œä½œä¸ºè¿½åŠ çš„å­—ç¬¦ä¸²ï¼Œç”¨sizeæ¥æ§åˆ¶å¤§å°
 */
 void strlist_append_str(strlist_t *head, const char *append, int size);
 
 /**
-* @brief ÔÚÁ´±íÖĞÉ¾³ı¶ÔÓ¦½Úµã
-* @param[in] note ĞèÒªÉ¾³ıµÄ½Úµã
-* @note ²»ÔÊĞíÖØ¸´É¾³ı£¬·ñÔòÒò½Úµã±»ÖØ¸´free¶ø³öÏÖÎÊÌâ
+* @brief åœ¨é“¾è¡¨ä¸­åˆ é™¤å¯¹åº”èŠ‚ç‚¹
+* @param[in] note éœ€è¦åˆ é™¤çš„èŠ‚ç‚¹
+* @note ä¸å…è®¸é‡å¤åˆ é™¤ï¼Œå¦åˆ™å› èŠ‚ç‚¹è¢«é‡å¤freeè€Œå‡ºç°é—®é¢˜
 */
 void strlist_del(strlist_t *node);
 
 /**
-* @brief ÔÚÁ´±íÖĞÉ¾³ı¶à¸ö½Úµã
-* @param[in] prev ĞèÒªÉ¾³ıµÄ½Úµã£¬ÆğÊ¼µã
-* @param[in] next ĞèÒªÉ¾³ıµÄ½Úµã£¬½áÊøµã
-* @note ²»ÔÊĞíÖØ¸´É¾³ı£¬·ñÔòÒò½Úµã±»ÖØ¸´free¶ø³öÏÖÎÊÌâ¡£É¾³ı²Ù×÷°üÀ¨prevºÍnext
+* @brief åœ¨é“¾è¡¨ä¸­åˆ é™¤å¤šä¸ªèŠ‚ç‚¹
+* @param[in] prev éœ€è¦åˆ é™¤çš„èŠ‚ç‚¹ï¼Œèµ·å§‹ç‚¹
+* @param[in] next éœ€è¦åˆ é™¤çš„èŠ‚ç‚¹ï¼Œç»“æŸç‚¹
+* @note ä¸å…è®¸é‡å¤åˆ é™¤ï¼Œå¦åˆ™å› èŠ‚ç‚¹è¢«é‡å¤freeè€Œå‡ºç°é—®é¢˜ã€‚åˆ é™¤æ“ä½œåŒ…æ‹¬prevå’Œnext
 */
 void strlist_del_mult(strlist_t *prev, strlist_t *next);
 
 /**
-* @brief Îö¹¹Á´±í
-* @param[in,out] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
-* @note head±ØĞëÊÇÍ·Ö¸Õë£¬·ñÔò¿ÉÄÜ»á´íÎóµÄfreeÕæÕıµÄÍ·Ö¸Õë
+* @brief ææ„é“¾è¡¨
+* @param[in,out] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
+* @note headå¿…é¡»æ˜¯å¤´æŒ‡é’ˆï¼Œå¦åˆ™å¯èƒ½ä¼šé”™è¯¯çš„freeçœŸæ­£çš„å¤´æŒ‡é’ˆ
 */
 void strlist_destruct(strlist_t *head);
 
 /**
-* @brief ¼ÆËãÁ´±íÖĞ°üº¬µÄ×Ö·û´®µÄ×Ü³¤¶È
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
-* @return ¼ÆËã³öµÄ×Ö·û´®×Ü³¤¶È
-* @note ×Ü³¤¶È²»°üº¬'/0'
+* @brief è®¡ç®—é“¾è¡¨ä¸­åŒ…å«çš„å­—ç¬¦ä¸²çš„æ€»é•¿åº¦
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
+* @return è®¡ç®—å‡ºçš„å­—ç¬¦ä¸²æ€»é•¿åº¦
+* @note æ€»é•¿åº¦ä¸åŒ…å«'/0'
 */
 int strlist_total_slen(strlist_t *head);
 
 /**
-* @brief ¼ÆËãÁ´±íÖĞÓĞĞ§½ÚµãµÄÊıÁ¿
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
-* @return ¼ÆËã³öµÄÓĞĞ§½ÚµãµÄÊıÁ¿
+* @brief è®¡ç®—é“¾è¡¨ä¸­æœ‰æ•ˆèŠ‚ç‚¹çš„æ•°é‡
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
+* @return è®¡ç®—å‡ºçš„æœ‰æ•ˆèŠ‚ç‚¹çš„æ•°é‡
 */
 int strlist_total_numb(strlist_t *head);
 
 /**
-* @brief ¸ù¾İË÷ÒıºÅÈ¡µÃ¶ÓÁĞÖĞ¶ÔÓ¦µÄ½Úµã
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
-* @param[in] idx ´ÓÊ×¸öÓĞĞ§½Úµã¿ªÊ¼ËãµÄË÷ÒıºÅ
-* @return È¡µÃµÄ½Úµã£¬Èç¹ûÊÇNULLÔò´ú±íÊ§°Ü
-* @note idxÎª0¶ÔÓ¦strlist_fist(head),idxÎªstrlist_total_numb()-1£¬¶ÔÓ¦strlist_last(head)
+* @brief æ ¹æ®ç´¢å¼•å·å–å¾—é˜Ÿåˆ—ä¸­å¯¹åº”çš„èŠ‚ç‚¹
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
+* @param[in] idx ä»é¦–ä¸ªæœ‰æ•ˆèŠ‚ç‚¹å¼€å§‹ç®—çš„ç´¢å¼•å·
+* @return å–å¾—çš„èŠ‚ç‚¹ï¼Œå¦‚æœæ˜¯NULLåˆ™ä»£è¡¨å¤±è´¥
+* @note idxä¸º0å¯¹åº”strlist_fist(head),idxä¸ºstrlist_total_numb()-1ï¼Œå¯¹åº”strlist_last(head)
 */
 strlist_t * strlist_get_with_idx(strlist_t *head, int idx);
 
 /**
-* @brief »ñÈ¡Á´±íÖĞµÄÊ×½Úµã
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
+* @brief è·å–é“¾è¡¨ä¸­çš„é¦–èŠ‚ç‚¹
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
 */
 #define strlist_fist(head) list_first_entry(&(head)->list, strlist_t, list)
 
 /**
-* @brief »ñÈ¡ÏÂÒ»¸ö½Úµã
-* @param[in] node Ö¸ÏòstrlistÁ´±íµ±Ç°½ÚµãµÄÖ¸Õë
+* @brief è·å–ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+* @param[in] node æŒ‡å‘strlisté“¾è¡¨å½“å‰èŠ‚ç‚¹çš„æŒ‡é’ˆ
 */
 #define strlist_next(node) list_first_entry(&(node)->list, strlist_t, list)
 
 /**
-* @brief »ñÈ¡Á´±íÖĞµÄÎ²½Úµã
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
+* @brief è·å–é“¾è¡¨ä¸­çš„å°¾èŠ‚ç‚¹
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
 */
 #define strlist_last(head) list_last_entry(&(head)->list, strlist_t, list)
 
 /**
-* @brief »ñÈ¡ÏÂÒ»¸ö½Úµã
-* @param[in] node Ö¸ÏòstrlistÁ´±íµ±Ç°½ÚµãµÄÖ¸Õë
+* @brief è·å–ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+* @param[in] node æŒ‡å‘strlisté“¾è¡¨å½“å‰èŠ‚ç‚¹çš„æŒ‡é’ˆ
 */
 #define strlist_prev(node) list_last_entry(&(node)->list, strlist_t, list)
 
 /**
-* @brief ÕıÏò±éÀúÁ´±í
-* @param[out] pos ÓÃÓÚ±éÀúÁ´±íµÄstrlistÖ¸Õë
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
+* @brief æ­£å‘éå†é“¾è¡¨
+* @param[out] pos ç”¨äºéå†é“¾è¡¨çš„strlistæŒ‡é’ˆ
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
 */
 #define strlist_for_each_entry(pos, head) \
     list_for_each_entry(pos, &(head)->list, list)
 
 /**
-* @brief ÕıÏò±éÀúÁ´±í£¬²¢ÇÒ±éÀúÆÚ¼äµ±Ç°½Úµã¿ÉÄÜ±»·ÖÁÑ»òÕßĞŞ¸Ä
-* @param[out] pos ÓÃÓÚ±éÀúÁ´±íµÄstrlistÖ¸Õë
-* @param[in] head Ö¸ÏòstrlistÁ´±íÍ·²¿µÄÖ¸Õë
+* @brief æ­£å‘éå†é“¾è¡¨ï¼Œå¹¶ä¸”éå†æœŸé—´å½“å‰èŠ‚ç‚¹å¯èƒ½è¢«åˆ†è£‚æˆ–è€…ä¿®æ”¹
+* @param[out] pos ç”¨äºéå†é“¾è¡¨çš„strlistæŒ‡é’ˆ
+* @param[in] head æŒ‡å‘strlisté“¾è¡¨å¤´éƒ¨çš„æŒ‡é’ˆ
 */
 #if 1
 #define strlist_for_each_entry_fix(pos, head) \

@@ -32,3 +32,5 @@ output
 *.rej
 signal_slot_dec.h
 signal_slot_def.h
+cmoc_conf.txt
+cmoc_conf.txt.bak

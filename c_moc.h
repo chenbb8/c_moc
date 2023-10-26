@@ -4,20 +4,20 @@
 #include <stdbool.h>
 
 /**
-* @brief ³õÊ¼»¯cmocÄ£¿é
+* @brief åˆå§‹åŒ–cmocæ¨¡å—
 */
 void cmoc_init(void);
 
 /**
-* @brief Ô¤´¦ÀíÎÄ¼ş£¬ÌáÈ¡³ö¹Ø¼ü×Ö
-* @param[in] file_name ĞèÒªÔ¤´¦ÀíµÄÎÄ¼ş
-* @return ÊÇ·ñÓĞ¼ì²âµ½ÏàÓ¦¹Ø¼ü×Ö
+* @brief é¢„å¤„ç†æ–‡ä»¶ï¼Œæå–å‡ºå…³é”®å­—
+* @param[in] file_name éœ€è¦é¢„å¤„ç†çš„æ–‡ä»¶
+* @return æ˜¯å¦æœ‰æ£€æµ‹åˆ°ç›¸åº”å…³é”®å­—
 */
 bool cmoc_preprocess_file(const char *file_name);
 
 /**
-* @brief ½«Ô¤´¦ÀíÌáÈ¡µÄ¹Ø¼ü×Ö£¬Éú³É¶ÔÓ¦µÄÎÄ¼ş
-* @param[in] save_dir ±£´æÉú³ÉÎÄ¼şµÄÂ·¾¶
+* @brief å°†é¢„å¤„ç†æå–çš„å…³é”®å­—ï¼Œç”Ÿæˆå¯¹åº”çš„æ–‡ä»¶
+* @param[in] save_dir ä¿å­˜ç”Ÿæˆæ–‡ä»¶çš„è·¯å¾„
 */
 void cmoc_generation_and_save(const char *save_dir);
 

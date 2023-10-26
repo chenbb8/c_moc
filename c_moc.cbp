@@ -35,6 +35,18 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="c_moc.h" />
+		<Unit filename="conf-c/conf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="conf-c/conf.h" />
+		<Unit filename="conf-c/hash/hash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="conf-c/hash/hash.h" />
+		<Unit filename="conf-c/stack/stack.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="conf-c/stack/stack.h" />
 		<Unit filename="dec.h" />
 		<Unit filename="def.h" />
 		<Unit filename="list.h" />

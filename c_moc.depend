@@ -1,29 +1,31 @@
 # depslib dependency file v1.0
-1698204190 source:f:\codeblocks\c_moc\main.c
+1698310022 source:f:\codeblocks\c_moc\main.c
 	<stdio.h>
 	<stdlib.h>
 	<windows.h>
 	<string.h>
 	<assert.h>
 	<io.h>
+	<sys/stat.h>
 	"str_list.h"
 	"c_moc.h"
+	"conf-c/conf.h"
 
-1698115885 source:f:\codeblocks\c_moc\str_list.c
+1698230662 source:f:\codeblocks\c_moc\str_list.c
 	<string.h>
 	<stdio.h>
 	<stdlib.h>
 	<assert.h>
 	"str_list.h"
 
-1698049414 f:\codeblocks\c_moc\str_list.h
+1698230662 f:\codeblocks\c_moc\str_list.h
 	"list.h"
 	<stdbool.h>
 
 1698044294 f:\codeblocks\c_moc\list.h
 	<stdint.h>
 
-1698203687 source:f:\codeblocks\c_moc\c_moc.c
+1698306910 source:f:\codeblocks\c_moc\c_moc.c
 	<string.h>
 	<stdio.h>
 	<stdlib.h>
@@ -31,8 +33,32 @@
 	<assert.h>
 	"str_list.h"
 
-1697706127 f:\codeblocks\c_moc\c_moc.h
+1698230662 f:\codeblocks\c_moc\c_moc.h
 	<stdbool.h>
 
 1698055618 f:\codeblocks\c_moc\def.h
+
+1514447234 source:f:\codeblocks\c_moc\conf-c\conf.c
+	"hash/hash.h"
+	"stack/stack.h"
+	<ctype.h>
+
+1514447234 f:\codeblocks\c_moc\conf-c\hash\hash.h
+	"../conf.h"
+
+1514447234 f:\codeblocks\c_moc\conf-c\conf.h
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<unistd.h>
+
+1514447234 f:\codeblocks\c_moc\conf-c\stack\stack.h
+	<string.h>
+
+1514447234 source:f:\codeblocks\c_moc\conf-c\hash\hash.c
+	"hash.h"
+
+1514447234 source:f:\codeblocks\c_moc\conf-c\stack\stack.c
+	"stack.h"
+	"../conf.h"
 

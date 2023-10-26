@@ -11,16 +11,16 @@
 #if defined(__linux__)
 #define NL "\n"
 #else
-#define NL "\n"/*ËäÈ»ÍøÉÏËµ£¬windowsµÄ»»ĞĞÊÇ\r\n£¬µ«ÔÚwin10ÉÏ¶ÁÈ¡Ò»¸öÆÕÍ¨txt£¬¿ÉÒÔ¹Û²ìµ½»»ĞĞ·ûÊÇ\n*/
+#define NL "\r\n"
 #endif
 
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
-    CMOC_LABEL_COMMA,//¶ººÅ
-    CMOC_LABEL_FUNC_NAME,//º¯ÊıÃû
-    CMOC_LABEL_FUNC_PARAM_TYPE,//º¯Êı²ÎÊı£ºÀàĞÍ
-    CMOC_LABEL_FUNC_PARAM_NAME,//º¯Êı²ÎÊı£º²ÎÊıÃû
-    CMOC_LABEL_FUNC_PARAM_TYPE_NAME,//º¯Êı²ÎÊı£ºÀàĞÍ+²ÎÊıÃû
+    CMOC_LABEL_COMMA,//é€—å·
+    CMOC_LABEL_FUNC_NAME,//å‡½æ•°å
+    CMOC_LABEL_FUNC_PARAM_TYPE,//å‡½æ•°å‚æ•°ï¼šç±»å‹
+    CMOC_LABEL_FUNC_PARAM_NAME,//å‡½æ•°å‚æ•°ï¼šå‚æ•°å
+    CMOC_LABEL_FUNC_PARAM_TYPE_NAME,//å‡½æ•°å‚æ•°ï¼šç±»å‹+å‚æ•°å
 };
 
 typedef struct {
@@ -28,21 +28,21 @@ typedef struct {
     strlist_t param_list;
 } signal_slot_info_t;
 
-signal_slot_info_t slot_info[SIGNAL_SLOT_NUMB_MAX];//Ô¤´¦ÀíËù¼ÇÂ¼µÄslotĞÅÏ¢
-signal_slot_info_t signal_info[SIGNAL_SLOT_NUMB_MAX];//Ô¤´¦ÀíËù¼ÇÂ¼µÄsignalĞÅÏ¢
-int slot_numb = 0;//µ±Ç°ÓĞ¶àÉÙslotĞÅÏ¢
-int signal_numb = 0;//µ±Ç°ÓĞ¶àÉÙsignalĞÅÏ¢
+signal_slot_info_t slot_info[SIGNAL_SLOT_NUMB_MAX];//é¢„å¤„ç†æ‰€è®°å½•çš„slotä¿¡æ¯
+signal_slot_info_t signal_info[SIGNAL_SLOT_NUMB_MAX];//é¢„å¤„ç†æ‰€è®°å½•çš„signalä¿¡æ¯
+int slot_numb = 0;//å½“å‰æœ‰å¤šå°‘slotä¿¡æ¯
+int signal_numb = 0;//å½“å‰æœ‰å¤šå°‘signalä¿¡æ¯
 
 extern const char *signal_define;
 extern const char *signal_declaration;
 extern const char *slot_define;
 extern const char *slot_declaration;
 
-#define LINE_MAX 1024*1024/*Ò»ĞĞ×î¶à¼¸¸ö×Ö½Ú*/
+#define LINE_MAX 1024*1024/*ä¸€è¡Œæœ€å¤šå‡ ä¸ªå­—èŠ‚*/
 
 
 /**
-* @brief ³õÊ¼»¯cmocÄ£¿é
+* @brief åˆå§‹åŒ–cmocæ¨¡å—
 */
 void cmoc_init(void)
 {
@@ -51,18 +51,18 @@ void cmoc_init(void)
 }
 
 typedef enum {
-    AXTRACT_S_INIT,//ÆğÊ¼
-    AXTRACT_S_KEY,//ÕÒµ½¹Ø¼ü×Ö
-    AXTRACT_S_NAME,//ÕÒµ½º¯ÊıÃû
+    AXTRACT_S_INIT,//èµ·å§‹
+    AXTRACT_S_KEY,//æ‰¾åˆ°å…³é”®å­—
+    AXTRACT_S_NAME,//æ‰¾åˆ°å‡½æ•°å
 } extract_s_t;
 
 /**
-* @brief ²éÕÒ¶ÔÓ¦µÄ×Ö·û´®
-* @param[in] src ĞèÒª±»²éÕÒµÄ×Ö·û´®
-* @param[in] keyword ĞèÒªÆ¥ÅäµÄ¹Ø¼ü×Ö·û´®
+* @brief æŸ¥æ‰¾å¯¹åº”çš„å­—ç¬¦ä¸²
+* @param[in] src éœ€è¦è¢«æŸ¥æ‰¾çš„å­—ç¬¦ä¸²
+* @param[in] keyword éœ€è¦åŒ¹é…çš„å…³é”®å­—ç¬¦ä¸²
 * @return
-*   @retval NULL Ã»ÓĞÕÒµ½Æ¥ÅäµÄ×Ö·û´®
-*   @retval ·ÇNULLÖ¸Õë ÔÚsrcÖĞÆ¥Åäµ½µÄ×Ö·û´®µÄµØÖ·
+*   @retval NULL æ²¡æœ‰æ‰¾åˆ°åŒ¹é…çš„å­—ç¬¦ä¸²
+*   @retval éNULLæŒ‡é’ˆ åœ¨srcä¸­åŒ¹é…åˆ°çš„å­—ç¬¦ä¸²çš„åœ°å€
 */
 static const char *cmoc_find_keyword(const char *src, const char *keyword)
 {
@@ -89,12 +89,12 @@ static const char *cmoc_find_keyword(const char *src, const char *keyword)
 }
 
 /**
-* @brief ÔÚ×Ö·û´®¿ªÊ¼µÄµØ·½²éÕÒ¶ÔÓ¦µÄ×Ö·û´®(ºöÂÔ¿Õ¸ñÓëTAB)
-* @param[in] src ĞèÒª±»²éÕÒµÄ×Ö·û´®
-* @param[in] keyword ĞèÒªÆ¥ÅäµÄ¹Ø¼ü×Ö·û´®
+* @brief åœ¨å­—ç¬¦ä¸²å¼€å§‹çš„åœ°æ–¹æŸ¥æ‰¾å¯¹åº”çš„å­—ç¬¦ä¸²(å¿½ç•¥ç©ºæ ¼ä¸TAB)
+* @param[in] src éœ€è¦è¢«æŸ¥æ‰¾çš„å­—ç¬¦ä¸²
+* @param[in] keyword éœ€è¦åŒ¹é…çš„å…³é”®å­—ç¬¦ä¸²
 * @return
-*   @retval NULL Ã»ÓĞÕÒµ½Æ¥ÅäµÄ×Ö·û´®
-*   @retval ·ÇNULLÖ¸Õë ÔÚsrcÖĞÆ¥Åäµ½µÄ×Ö·û´®µÄµØÖ·
+*   @retval NULL æ²¡æœ‰æ‰¾åˆ°åŒ¹é…çš„å­—ç¬¦ä¸²
+*   @retval éNULLæŒ‡é’ˆ åœ¨srcä¸­åŒ¹é…åˆ°çš„å­—ç¬¦ä¸²çš„åœ°å€
 */
 static const char *cmoc_find_keyword_first(const char *src, const char *keyword)
 {
@@ -112,7 +112,7 @@ static const char *cmoc_find_keyword_first(const char *src, const char *keyword)
     }
     for (i = 0; i < (len_src+1-len_keyword); ++i,++pread)
     {
-        if ( (*pread != ' ') && (*pread != '\t') )//Ê×¸ö·Ç¿Õ¸ñÓëtabµÄ×Ö·û´®ÊÇ·ñÎªkeyword
+        if ( (*pread != ' ') && (*pread != '\t') )//é¦–ä¸ªéç©ºæ ¼ä¸tabçš„å­—ç¬¦ä¸²æ˜¯å¦ä¸ºkeyword
         {
             if (memcmp(pread, keyword, len_keyword) == 0)
             {
@@ -125,17 +125,17 @@ static const char *cmoc_find_keyword_first(const char *src, const char *keyword)
 }
 
 /**
-* @brief ½«²ÎÊı×Ö·û´®Ö»±£ÁôÀàĞÍ£¬²¢×ª»»³É²ÎÊıÁ´±í
-* @param[out] param_list ×ª»»³öÀ´µÄ²ÎÊıÁ´±í
-* @param[in] param_str ĞèÒª×ª»»µÄ²ÎÊı×Ö·û´®
-* @param[in] size ²ÎÊı×Ö·û´®µÄ´óĞ¡
-* @return Ò»¹²ÓĞ¼¸¸ö²ÎÊı 0´ú±ívoid
+* @brief å°†å‚æ•°å­—ç¬¦ä¸²åªä¿ç•™ç±»å‹ï¼Œå¹¶è½¬æ¢æˆå‚æ•°é“¾è¡¨
+* @param[out] param_list è½¬æ¢å‡ºæ¥çš„å‚æ•°é“¾è¡¨
+* @param[in] param_str éœ€è¦è½¬æ¢çš„å‚æ•°å­—ç¬¦ä¸²
+* @param[in] size å‚æ•°å­—ç¬¦ä¸²çš„å¤§å°
+* @return ä¸€å…±æœ‰å‡ ä¸ªå‚æ•° 0ä»£è¡¨void
 */
 static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, int size)
 {
     strlist_t split;
     strlist_t *pos;
-    const char *comma;//¶ººÅµÄÖ¸Õë
+    const char *comma;//é€—å·çš„æŒ‡é’ˆ
     int numb = 0;
 
     strlist_head_init(&split);
@@ -144,34 +144,34 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
     {
         return 0;
     }
-    //½«²ÎÊı×ª»»³ÉsplitÁ´±íÒÔ·½±ãºóÃæµÄ´¦Àí
+    //å°†å‚æ•°è½¬æ¢æˆsplité“¾è¡¨ä»¥æ–¹ä¾¿åé¢çš„å¤„ç†
     strlist_append_str(&split, param_str, size);
-    //Ñ­»·»ñÈ¡×îºóÒ»¸ö½Úµã£¬²¢ÒÔËÑË÷µ½µÄµÚÒ»¸ö','·ûÎª½ç£¬·Ö¸îÁ´±í
+    //å¾ªç¯è·å–æœ€åä¸€ä¸ªèŠ‚ç‚¹ï¼Œå¹¶ä»¥æœç´¢åˆ°çš„ç¬¬ä¸€ä¸ª','ç¬¦ä¸ºç•Œï¼Œåˆ†å‰²é“¾è¡¨
     while (pos = strlist_last(&split), comma = cmoc_find_keyword(pos->str, ","), comma!=NULL)
     {
         strlist_split_point(pos, comma, 1, CMOC_LABEL_COMMA);
     }
-    //±éÀúÁ´±í
+    //éå†é“¾è¡¨
     strlist_for_each_entry(pos, &split)
     {
         if (pos->label != CMOC_LABEL_COMMA)
         {
             int len = strlen(pos->str);
-            char curr_param[200];//Ó¦¸Ã²»»áÓĞ³¬¹ı200×Ö½ÚµÄÀàĞÍÃû×Ö
+            char curr_param[200];//åº”è¯¥ä¸ä¼šæœ‰è¶…è¿‡200å­—èŠ‚çš„ç±»å‹åå­—
             int write_idx = 0;
             int read_idx = 0;
-            char *read_start = pos->str;//¶ÁÈ¡µÄÆğÊ¼Ö¸Õë
+            char *read_start = pos->str;//è¯»å–çš„èµ·å§‹æŒ‡é’ˆ
 
 
             if (len == 0) {
                 continue;
             }
-            //É¾³ıÇ°ÃæµÄ¿Õ¸ñ
+            //åˆ é™¤å‰é¢çš„ç©ºæ ¼
             for (read_idx = 0; read_idx < len; ++read_idx)
             {
                 if (!((read_start[read_idx] == ' ')||(read_start[read_idx] == '\t')))
                 {
-                    break;//Åöµ½ÁËµÚÒ»¸ö²»Îª¿Õ¸ñ»òtabµÄ×Ö·û
+                    break;//ç¢°åˆ°äº†ç¬¬ä¸€ä¸ªä¸ä¸ºç©ºæ ¼æˆ–tabçš„å­—ç¬¦
                 }
             }
             len -= read_idx;
@@ -179,7 +179,7 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
                 continue;
             }
             read_start += read_idx;
-            //ÏÈÅĞ¶ÏÊÇ·ñÎªÀàËÆ"struct type * name"ÕâÑùÓĞ"struct"µÄ¸ñÊ½
+            //å…ˆåˆ¤æ–­æ˜¯å¦ä¸ºç±»ä¼¼"struct type * name"è¿™æ ·æœ‰"struct"çš„æ ¼å¼
             if (memcmp(read_start, "struct", strlen("struct")) == 0)
             {
                 char ch = read_start[strlen("struct")];
@@ -193,12 +193,12 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
                     write_idx += strlen("struct ");
                     read_start += strlen("struct ");
 
-                    //ÔÙ´ÎÉ¾³ıÇ°ÃæµÄ¿Õ¸ñ
+                    //å†æ¬¡åˆ é™¤å‰é¢çš„ç©ºæ ¼
                     for (read_idx = 0; read_idx < len; ++read_idx)
                     {
                         if (!((read_start[read_idx] == ' ')||(read_start[read_idx] == '\t')))
                         {
-                            break;//Åöµ½ÁËµÚÒ»¸ö²»Îª¿Õ¸ñ»òtabµÄ×Ö·û
+                            break;//ç¢°åˆ°äº†ç¬¬ä¸€ä¸ªä¸ä¸ºç©ºæ ¼æˆ–tabçš„å­—ç¬¦
                         }
                     }
                     len -= read_idx;
@@ -208,7 +208,7 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
                     read_start += read_idx;
                 }
             }
-            //È¡µÃÀàĞÍÃû ´ÓÕâ¿ªÊ¼¾ÍÒª¿ªÊ¼¾ÍÒªĞ´Èëµ½param_listÁË
+            //å–å¾—ç±»å‹å ä»è¿™å¼€å§‹å°±è¦å¼€å§‹å°±è¦å†™å…¥åˆ°param_listäº†
             for (read_idx = 0; read_idx < len; ++read_idx)
             {
                 if ((read_start[read_idx] == ' ')||(read_start[read_idx] == '\t'))
@@ -220,7 +220,7 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
             curr_param[write_idx+read_idx] = '\0';
             len -= read_idx;
             if (len == 0) {
-                if (strcmp(curr_param, "void") != 0) {//voidÀàĞÍ²»¼ÇÂ¼
+                if (strcmp(curr_param, "void") != 0) {//voidç±»å‹ä¸è®°å½•
                     strlist_append_str(param_list, curr_param, strlen(curr_param));
                     numb++;
                 }
@@ -228,7 +228,7 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
             }
             write_idx += read_idx;
             read_start += read_idx;
-            //²éÕÒÊÇ·ñ»¹ÓĞ¡®*¡¯·û
+            //æŸ¥æ‰¾æ˜¯å¦è¿˜æœ‰â€˜*â€™ç¬¦
             for (read_idx = 0; read_idx < len; ++read_idx)
             {
                 if (!((read_start[read_idx] == ' ')||(read_start[read_idx] == '\t')))
@@ -242,22 +242,22 @@ static int cmoc_param_str_2_list(strlist_t *param_list, const char *param_str, i
                 }
             }
             curr_param[write_idx] = '\0';
-            if (strcmp(curr_param, "void") != 0) {//voidÀàĞÍ²»¼ÇÂ¼
+            if (strcmp(curr_param, "void") != 0) {//voidç±»å‹ä¸è®°å½•
                 strlist_append_str(param_list, curr_param, strlen(curr_param));
                 numb++;
             }
         }
     }
-    strlist_destruct(&split);//ÊÍ·Åsplit
+    strlist_destruct(&split);//é‡Šæ”¾split
     return numb;
 }
 
 /**
-* @brief ½«²ÎÊıÁ´±í×ª»»³É²ÎÊı×Ö·û´®,°üº¬ÀàĞÍºÍ²ÎÊıÃû
-* @param[out] param_str ×ª»»³öÀ´µÄ²ÎÊı×Ö·û´®
-* @param[in] size_str ²ÎÊı×Ö·û´®ËùÔÚ»º³åÇøµÄ´óĞ¡
-* @param[in] param_list ĞèÒª×ª»»µÄ²ÎÊıÁ´±í
-* @return param_strµÄÆğÊ¼µØÖ·
+* @brief å°†å‚æ•°é“¾è¡¨è½¬æ¢æˆå‚æ•°å­—ç¬¦ä¸²,åŒ…å«ç±»å‹å’Œå‚æ•°å
+* @param[out] param_str è½¬æ¢å‡ºæ¥çš„å‚æ•°å­—ç¬¦ä¸²
+* @param[in] size_str å‚æ•°å­—ç¬¦ä¸²æ‰€åœ¨ç¼“å†²åŒºçš„å¤§å°
+* @param[in] param_list éœ€è¦è½¬æ¢çš„å‚æ•°é“¾è¡¨
+* @return param_strçš„èµ·å§‹åœ°å€
 */
 static char* cmoc_param_list_2_str(char *param_str, int size_str, strlist_t *param_list)
 {
@@ -266,7 +266,7 @@ static char* cmoc_param_list_2_str(char *param_str, int size_str, strlist_t *par
     assert(size_str > 1);
 
     param_str[0] = '\0';
-    size_str -= 1;//×îºóµÄ'\0'²»´æ·Å¶«Î÷
+    size_str -= 1;//æœ€åçš„'\0'ä¸å­˜æ”¾ä¸œè¥¿
     strlist_for_each_entry(pos, param_list)
     {
         int len = strlen(param_str);
@@ -287,11 +287,11 @@ static char* cmoc_param_list_2_str(char *param_str, int size_str, strlist_t *par
 }
 
 /**
-* @brief ½«²ÎÊıÁ´±í×ª»»³É²ÎÊı×Ö·û´®,Ö»°üº¬²ÎÊıÃû
-* @param[out] param_str ×ª»»³öÀ´µÄ²ÎÊı×Ö·û´®
-* @param[in] size_str ²ÎÊı×Ö·û´®ËùÔÚ»º³åÇøµÄ´óĞ¡
-* @param[in] param_list ĞèÒª×ª»»µÄ²ÎÊıÁ´±í
-* @return param_strµÄÆğÊ¼µØÖ·
+* @brief å°†å‚æ•°é“¾è¡¨è½¬æ¢æˆå‚æ•°å­—ç¬¦ä¸²,åªåŒ…å«å‚æ•°å
+* @param[out] param_str è½¬æ¢å‡ºæ¥çš„å‚æ•°å­—ç¬¦ä¸²
+* @param[in] size_str å‚æ•°å­—ç¬¦ä¸²æ‰€åœ¨ç¼“å†²åŒºçš„å¤§å°
+* @param[in] param_list éœ€è¦è½¬æ¢çš„å‚æ•°é“¾è¡¨
+* @return param_strçš„èµ·å§‹åœ°å€
 */
 static char* cmoc_param_list_2_str_no_type(char *param_str, int size_str, strlist_t *param_list)
 {
@@ -300,7 +300,7 @@ static char* cmoc_param_list_2_str_no_type(char *param_str, int size_str, strlis
     assert(size_str > 1);
 
     param_str[0] = '\0';
-    size_str -= 1;//×îºóµÄ'\0'²»´æ·Å¶«Î÷
+    size_str -= 1;//æœ€åçš„'\0'ä¸å­˜æ”¾ä¸œè¥¿
     strlist_for_each_entry(pos, param_list)
     {
         int len = strlen(param_str);
@@ -321,14 +321,14 @@ static char* cmoc_param_list_2_str_no_type(char *param_str, int size_str, strlis
 }
 
 /**
-* @brief ÌáÈ¡¹Ø¼ü×Ö¶ÔÓ¦µÄº¯Êı
-* @param[in] src ĞèÒª±»´¦ÀíµÄ×Ö·û´®
-* @param[in] keyword ĞèÒªÆ¥ÅäµÄ¹Ø¼ü×Ö·û´®
-* @param[out] info ´æ·ÅÌáÈ¡³öÀ´µÄº¯Êıinfo
-* @param[in,out] numb µ±Ç°ÓĞĞ§µÄinfoÊıÁ¿
-* @return ÊÇ·ñÓĞ¶ÔÓ¦º¯Êı
-*   @retval true ÕÒµ½¶ÔÓ¦º¯Êı
-*   @retval false Ã»ÕÒµ½¶ÔÓ¦º¯Êı
+* @brief æå–å…³é”®å­—å¯¹åº”çš„å‡½æ•°
+* @param[in] src éœ€è¦è¢«å¤„ç†çš„å­—ç¬¦ä¸²
+* @param[in] keyword éœ€è¦åŒ¹é…çš„å…³é”®å­—ç¬¦ä¸²
+* @param[out] info å­˜æ”¾æå–å‡ºæ¥çš„å‡½æ•°info
+* @param[in,out] numb å½“å‰æœ‰æ•ˆçš„infoæ•°é‡
+* @return æ˜¯å¦æœ‰å¯¹åº”å‡½æ•°
+*   @retval true æ‰¾åˆ°å¯¹åº”å‡½æ•°
+*   @retval false æ²¡æ‰¾åˆ°å¯¹åº”å‡½æ•°
 */
 static bool cmoc_extract_keyword(const char *src, const char *keyword, signal_slot_info_t *info, int *numb)
 {
@@ -344,46 +344,46 @@ static bool cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
         return false;
     }
 
-    //²éÕÒ¹Ø¼ü×Ösignal»òÕßslot
-    const char *pkey = cmoc_find_keyword_first(src, keyword);//ÔÚ×Ö·û´®¿ªÊ¼µÄµØ·½²éÕÒ¶ÔÓ¦µÄ×Ö·û´®(ºöÂÔ¿Õ¸ñÓëTAB)
+    //æŸ¥æ‰¾å…³é”®å­—signalæˆ–è€…slot
+    const char *pkey = cmoc_find_keyword_first(src, keyword);//åœ¨å­—ç¬¦ä¸²å¼€å§‹çš„åœ°æ–¹æŸ¥æ‰¾å¯¹åº”çš„å­—ç¬¦ä¸²(å¿½ç•¥ç©ºæ ¼ä¸TAB)
     if (pkey == NULL) {
         return false;
     }
-    //¹Ø¼ü×ÖºóÓ¦¸ÃÊÇ¿Õ¸ñ»òÕßtab
+    //å…³é”®å­—ååº”è¯¥æ˜¯ç©ºæ ¼æˆ–è€…tab
     if ( !((pkey[key_len] == ' ')||(pkey[key_len] == '\t')) )
     {
         return false;
     }
 
-    //²éÕÒ'('
+    //æŸ¥æ‰¾'('
     const char *left = cmoc_find_keyword(pkey, "(");
     if (left == NULL) {
         return false;
     }
 
-    //²éÕÒ')'
+    //æŸ¥æ‰¾')'
     const char *right = cmoc_find_keyword(left, ")");
     if (right == NULL) {
         return false;
     }
 
-    //½ØÈ¡º¯ÊıÃû
+    //æˆªå–å‡½æ•°å
     const char *name_read = left-1;
-    while ((*name_read==' ')||(*name_read=='\t'))//Ê×ÏÈºöÂÔ'('Ç°µÄ¿Õ¸ñ
+    while ((*name_read==' ')||(*name_read=='\t'))//é¦–å…ˆå¿½ç•¥'('å‰çš„ç©ºæ ¼
     {
         if (--name_read <= pkey+key_len)
         {
-            return false;//´Ópkeyµ½'('Ö®¼äÈ«ÊÇ¿Õ¸ñ
+            return false;//ä»pkeyåˆ°'('ä¹‹é—´å…¨æ˜¯ç©ºæ ¼
         }
     }
-    const char *name_end = name_read;//Ö¸Ïòº¯ÊıÃûµÄ×îºóÒ»¸ö×Ö·û
+    const char *name_end = name_read;//æŒ‡å‘å‡½æ•°åçš„æœ€åä¸€ä¸ªå­—ç¬¦
     while (1)
     {
-        if ((*name_read==' ')||(*name_read=='\t'))//º¯ÊıÃûÇ°Ó¦¸ÃÊÇ¿Õ¸ñ
+        if ((*name_read==' ')||(*name_read=='\t'))//å‡½æ•°åå‰åº”è¯¥æ˜¯ç©ºæ ¼
         {
             break;
         }
-        if (--name_read < pkey+key_len)//³¬³ö·¶Î§
+        if (--name_read < pkey+key_len)//è¶…å‡ºèŒƒå›´
         {
             return false;
         }
@@ -391,7 +391,7 @@ static bool cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
     memcpy(info[*numb].name, name_read+1, name_end-name_read);
     info[*numb].name[name_end-name_read] = '\0';
 
-    //½ØÈ¡²ÎÊı
+    //æˆªå–å‚æ•°
     strlist_head_init(&info[*numb].param_list);
     if (right-left != 1)
     {
@@ -402,17 +402,16 @@ static bool cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
 }
 
 /**
-* @brief Ô¤´¦ÀíÎÄ¼ş£¬ÌáÈ¡³ö¹Ø¼ü×Ö
-* @param[in] file_name ĞèÒªÔ¤´¦ÀíµÄÎÄ¼ş
-* @return ÊÇ·ñÓĞ¼ì²âµ½ÏàÓ¦¹Ø¼ü×Ö
+* @brief é¢„å¤„ç†æ–‡ä»¶ï¼Œæå–å‡ºå…³é”®å­—å¯¹åº”çš„å‡½æ•°åå’Œå‚æ•°
+* @param[in] file_name éœ€è¦é¢„å¤„ç†çš„æ–‡ä»¶
+* @return æ˜¯å¦æœ‰æ£€æµ‹åˆ°ç›¸åº”å…³é”®å­—
 */
 bool cmoc_preprocess_file(const char *file_name)
 {
     char line_str[LINE_MAX];
-    int i;
     bool ret = false;
 
-    FILE* fp = fopen(file_name, "r");
+    FILE* fp = fopen(file_name, "rb");/*æ³¨æ„éœ€è¦ä»¥rb+æˆ–è€…wb+çš„æ–¹å¼æ‰“å¼€æ–‡ä»¶ï¼Œå› ä¸ºåœ¨windowsç¯å¢ƒä¸‹ï¼Œä¸å¸¦bçš„ç‰ˆæœ¬å¯èƒ½ä¼šåœ¨è¯»å†™æ–‡ä»¶çš„æ—¶å€™ï¼Œé‡åˆ°\nè‡ªåŠ¨å¢å‡ä¸€ä¸ª/r*/
 
     if (fp == NULL)
 	{
@@ -432,7 +431,8 @@ bool cmoc_preprocess_file(const char *file_name)
         }
     }
 
-    //TEST:´òÓ¡¼ìË÷³öÀ´µÄsignalºÍslot
+    //TEST:æ‰“å°æ£€ç´¢å‡ºæ¥çš„signalå’Œslot
+//    int i;
 //    char param_str[NAME_PARAM_MAX];
 //    for (i = 0; i < slot_numb; i++)
 //    {
@@ -452,10 +452,10 @@ bool cmoc_preprocess_file(const char *file_name)
 }
 
 /**
-* @brief ÓÃº¯ÊıinfoÉú³É×Ö·ûÁ´±í
-* @param[out] out_list ×ª»»³É³öÀ´µÄ×Ö·ûÁ´±í
-* @param[in] info ĞèÒª×ª»»µÄº¯Êıinfo
-* @param[in] template_str ×ª»»ÓÃµ½µÄÄ£°å
+* @brief ç”¨å‡½æ•°infoç”Ÿæˆå­—ç¬¦é“¾è¡¨
+* @param[out] out_list è½¬æ¢æˆå‡ºæ¥çš„å­—ç¬¦é“¾è¡¨
+* @param[in] info éœ€è¦è½¬æ¢çš„å‡½æ•°info
+* @param[in] template_str è½¬æ¢ç”¨åˆ°çš„æ¨¡æ¿
 */
 static void cmoc_info_2_strlist(strlist_t *out_list, const signal_slot_info_t* info, const char* template_str)
 {
@@ -468,9 +468,9 @@ static void cmoc_info_2_strlist(strlist_t *out_list, const signal_slot_info_t* i
     const char *keyword;
     char param_str[NAME_PARAM_MAX];
 
-    //½«Ä£°å×ª»»³Éout_listÁ´±íÒÔ·½±ãºóÃæµÄ´¦Àí
+    //å°†æ¨¡æ¿è½¬æ¢æˆout_listé“¾è¡¨ä»¥æ–¹ä¾¿åé¢çš„å¤„ç†
     strlist_append_str(out_list, template_str, size);
-    //±ê¼Çname
+    //æ ‡è®°name
     strlist_for_each_entry_fix(pos, out_list)
     {
         keyword = cmoc_find_keyword(pos->str, "$NAME");
@@ -479,7 +479,7 @@ static void cmoc_info_2_strlist(strlist_t *out_list, const signal_slot_info_t* i
             strlist_split_point(pos, keyword, sizeof("$NAME")-1, CMOC_LABEL_FUNC_NAME);
         }
     }
-    //±ê¼Ç ²ÎÊıÀàĞÍ-²ÎÊıÃû
+    //æ ‡è®° å‚æ•°ç±»å‹-å‚æ•°å
     strlist_for_each_entry_fix(pos, out_list)
     {
         keyword = cmoc_find_keyword(pos->str, "$PARAM_TYPE_NAME");
@@ -488,7 +488,7 @@ static void cmoc_info_2_strlist(strlist_t *out_list, const signal_slot_info_t* i
             strlist_split_point(pos, keyword, sizeof("$PARAM_TYPE_NAME")-1, CMOC_LABEL_FUNC_PARAM_TYPE_NAME);
         }
     }
-    //±ê¼Ç ²ÎÊıÃû
+    //æ ‡è®° å‚æ•°å
     strlist_for_each_entry_fix(pos, out_list)
     {
         keyword = cmoc_find_keyword(pos->str, "$PARAM_NAME");
@@ -497,21 +497,21 @@ static void cmoc_info_2_strlist(strlist_t *out_list, const signal_slot_info_t* i
             strlist_split_point(pos, keyword, sizeof("$PARAM_NAME")-1, CMOC_LABEL_FUNC_PARAM_NAME);
         }
     }
-    //Ìæ»»name
+    //æ›¿æ¢name
     strlist_replace_keyword(out_list, CMOC_LABEL_FUNC_NAME, info->name);
-    //Ìæ»» ²ÎÊıÀàĞÍ-²ÎÊıÃû
+    //æ›¿æ¢ å‚æ•°ç±»å‹-å‚æ•°å
     strlist_replace_keyword(out_list, CMOC_LABEL_FUNC_PARAM_TYPE_NAME, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, (void*)&info->param_list));
-    //Ìæ»» ²ÎÊıÃû
+    //æ›¿æ¢ å‚æ•°å
     strlist_replace_keyword(out_list, CMOC_LABEL_FUNC_PARAM_NAME, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, (void*)&info->param_list));
 }
 
 /**
-* @brief ºÏ²¢Â·¾¶ºÍÎÄ¼şÃû
-* @param[out] target_str ±£´æÉú³ÉÎÄ¼şµÄÂ·¾¶+ÎÄ¼şÃûµÄ»º³åÇø
-* @param[in] target_size_max Êä³ö»º³åÇøµÄ´óĞ¡
-* @param[in] dir ÎÄ¼şµÄÂ·¾¶
-* @param[in] file_name ÎÄ¼şÃû
-* @return ºÏ²¢ºÃµÄÂ·¾¶ºÍÎÄ¼şÃû×Ö·û´®
+* @brief åˆå¹¶è·¯å¾„å’Œæ–‡ä»¶å
+* @param[out] target_str ä¿å­˜ç”Ÿæˆæ–‡ä»¶çš„è·¯å¾„+æ–‡ä»¶åçš„ç¼“å†²åŒº
+* @param[in] target_size_max è¾“å‡ºç¼“å†²åŒºçš„å¤§å°
+* @param[in] dir æ–‡ä»¶çš„è·¯å¾„
+* @param[in] file_name æ–‡ä»¶å
+* @return åˆå¹¶å¥½çš„è·¯å¾„å’Œæ–‡ä»¶åå­—ç¬¦ä¸²
 */
 static char *cmoc_path_name(char *target_str, int target_size_max, const char *dir, const char *file_name)
 {
@@ -540,8 +540,8 @@ static char *cmoc_path_name(char *target_str, int target_size_max, const char *d
 }
 
 /**
-* @brief ½«Ô¤´¦ÀíÌáÈ¡µÄ¹Ø¼ü×Ö£¬Éú³É¶ÔÓ¦µÄÎÄ¼ş
-* @param[in] save_dir ±£´æÉú³ÉÎÄ¼şµÄÂ·¾¶
+* @brief å°†é¢„å¤„ç†æå–çš„å‡½æ•°åˆ—è¡¨ï¼Œç”Ÿæˆå¯¹åº”çš„æ–‡ä»¶
+* @param[in] save_dir ä¿å­˜ç”Ÿæˆæ–‡ä»¶çš„è·¯å¾„
 */
 void cmoc_generation_and_save(const char *save_dir)
 {
@@ -555,9 +555,9 @@ void cmoc_generation_and_save(const char *save_dir)
     strlist_t *pos;
     strlist_t gen_list;
 
-    //±£´æ¶¨ÒåÎÄ¼ş
+    //ä¿å­˜å®šä¹‰æ–‡ä»¶
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_def.h");
-    pfin = fopen(target_name, "w+");
+    pfin = fopen(target_name, "wb+");
     if (pfin == NULL)
 	{
 		perror("fopen fail:");
@@ -600,9 +600,9 @@ void cmoc_generation_and_save(const char *save_dir)
     fflush(pfin);
     fclose(pfin);
 
-    //±£´æÉùÃ÷ÎÄ¼ş
+    //ä¿å­˜å£°æ˜æ–‡ä»¶
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_dec.h");
-    pfin = fopen(target_name, "w+");
+    pfin = fopen(target_name, "wb+");
     if (pfin == NULL)
 	{
 		perror("fopen fail:");
@@ -645,7 +645,7 @@ void cmoc_generation_and_save(const char *save_dir)
     fclose(pfin);
 }
 
-#define SIGNAL_DEF_STR \
+const char *signal_define = \
 "/*define signal: void $NAME($PARAM_TYPE_NAME)*/"NL\
 "typedef void (*$NAME_t)(struct _signal_slot_node * sender$PARAM_TYPE_NAME);"NL\
 "void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
@@ -658,17 +658,15 @@ void cmoc_generation_and_save(const char *save_dir)
 "void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME)"NL\
 "{"NL\
 "    SIGNAL_SEND($NAME$PARAM_NAME);"NL\
-"}" NL NL NL
-const char *signal_define = SIGNAL_DEF_STR;
+"}" NL NL NL;
 
 
-#define SIGNAL_DEC_STR \
+const char *signal_declaration = \
 "/*declaration signal: void $NAME($PARAM_TYPE_NAME)*/"NL\
 "void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
-"extern struct _signal_slot_node $NAME_head;"NL NL NL
-const char *signal_declaration = SIGNAL_DEC_STR;
+"extern struct _signal_slot_node $NAME_head;"NL NL NL;
 
-#define SLOT_DEF_STR \
+const char *slot_define = \
 "/*define slot: void $NAME($PARAM_TYPE_NAME)*/"NL\
 "void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
 "struct _signal_slot_node $NAME_head = { "NL\
@@ -676,12 +674,10 @@ const char *signal_declaration = SIGNAL_DEC_STR;
 "    .signal_node = USER_LIST_HEAD_INIT($NAME_head.signal_node), "NL\
 "    .func = $NAME, "NL\
 "    .signals = NULL, "NL\
-"};"NL NL NL
-const char *slot_define = SLOT_DEF_STR;
+"};"NL NL NL;
 
-#define SLOT_DEC_STR \
+const char *slot_declaration = \
 "/*declaration slot: void $NAME($PARAM_TYPE_NAME)*/"NL\
 "void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
-"extern struct _signal_slot_node $NAME_head;"NL NL NL
-const char *slot_declaration = SLOT_DEC_STR;
+"extern struct _signal_slot_node $NAME_head;"NL NL NL;
 
