@@ -30,6 +30,7 @@ output
 *.diff
 *.patch
 *.rej
+test_sig.c
 signal_slot_dec.h
 signal_slot_def.h
 cmoc_conf.txt

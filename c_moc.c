@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <unistd.h>
 #include "str_list.h"
 
 #define NAME_PARAM_MAX              1024
@@ -13,6 +14,8 @@
 #else
 #define NL "\r\n"
 #endif
+
+#define CMOC_VER "0.0.1"
 
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
@@ -540,6 +543,120 @@ static char *cmoc_path_name(char *target_str, int target_size_max, const char *d
 }
 
 /**
+* @brief 在文件中标记当前的信息
+* @param[in] pf 需要标记的文件的句柄
+*/
+static void cmoc_info_mask(FILE* pf)
+{
+    const char *cstr;
+    char mask_per[NAME_PARAM_MAX];
+    char param_str[NAME_PARAM_MAX];
+
+    cstr = "/*"NL"INFO_MASK_START,CMOC_VER="CMOC_VER NL;
+    fwrite(cstr, 1, strlen(cstr), pf);
+    for (int i = 0; i < signal_numb; ++i)
+    {
+        snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)"NL, signal_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
+        fwrite(mask_per, 1, strlen(mask_per), pf);
+    }
+    for (int i = 0; i < slot_numb; ++i)
+    {
+        snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)"NL, slot_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
+        fwrite(mask_per, 1, strlen(mask_per), pf);
+    }
+    cstr = "INFO_MASK_START"NL"*/"NL NL NL;
+    fwrite(cstr, 1, strlen(cstr), pf);
+}
+
+/**
+* @brief 判断是否需要生成文件
+* @param[in] save_dir 保存生成文件的路径
+* @return 是否需要生成文件
+*/
+bool cmoc_check_need_save(const char *save_dir)
+{
+    char target_name[1024];
+    const char *cstr;
+    char mask_per[NAME_PARAM_MAX];
+    char param_str[NAME_PARAM_MAX];
+    FILE* pf;
+    int match_slot = 0;
+    int match_signal = 0;
+    int match_other = 0;
+
+    cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_dec.h");
+    if (access(target_name, F_OK) != 0)
+    {
+        return true;
+    }
+    cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_def.h");
+    if (access(target_name, F_OK) != 0)
+    {
+        return true;
+    }
+    pf = fopen(target_name, "r");
+    if (pf == NULL)
+	{
+		perror("fopen fail:");
+		exit(-1);
+	}
+
+    char line_str[LINE_MAX];
+    bool isMaskStart = false;
+    while (fgets(line_str, LINE_MAX, pf) != NULL)
+    {
+        if (!isMaskStart)
+        {
+            cstr = "INFO_MASK_START,CMOC_VER="CMOC_VER;
+            if (memcmp(line_str, cstr, strlen(cstr)) == 0) {
+                isMaskStart = true;
+            }
+            continue;
+        }
+
+        cstr = "INFO_MASK_END";
+        if (memcmp(line_str, cstr, strlen(cstr)) == 0) {
+            break;
+        }
+        //匹配signal
+        cstr = "signal:";
+        if (memcmp(line_str, cstr, strlen(cstr)) == 0)
+        {
+            for (int i = 0; i < signal_numb; ++i)
+            {
+                snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)", signal_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
+                if (memcmp(line_str, mask_per, strlen(mask_per)) == 0)
+                {
+                    match_signal++;
+                    break;
+                }
+            }
+            continue;
+        }
+        //匹配slot
+        cstr = "slot:";
+        if (memcmp(line_str, cstr, strlen(cstr)) == 0)
+        {
+            for (int i = 0; i < slot_numb; ++i)
+            {
+                snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)", slot_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
+                if (memcmp(line_str, mask_per, strlen(mask_per)) == 0)
+                {
+                    match_slot++;
+                    break;
+                }
+            }
+            continue;
+        }
+    }
+    if ((match_signal==signal_numb)&&(match_slot==slot_numb))
+    {
+        return false;
+    }
+    return true;
+}
+
+/**
 * @brief 将预处理提取的函数列表，生成对应的文件
 * @param[in] save_dir 保存生成文件的路径
 */
@@ -548,7 +665,7 @@ void cmoc_generation_and_save(const char *save_dir)
     int i;
     char target_name[1024];
     const char *cstr;
-    FILE* pfin;
+    FILE* pf;
 
 //    printf("%s", signal_define);
 
@@ -557,15 +674,17 @@ void cmoc_generation_and_save(const char *save_dir)
 
     //保存定义文件
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_def.h");
-    pfin = fopen(target_name, "wb+");
-    if (pfin == NULL)
+    pf = fopen(target_name, "wb+");
+    if (pf == NULL)
 	{
 		perror("fopen fail:");
 		exit(-1);
 	}
 
     cstr = "#ifndef _SIGNAL_SLOT_DEF_H_"NL"#define _SIGNAL_SLOT_DEF_H_"NL NL"#include \"signal_slot.h\""NL NL NL;
-    fwrite(cstr, 1, strlen(cstr), pfin);
+    fwrite(cstr, 1, strlen(cstr), pf);
+
+    cmoc_info_mask(pf);//在文件中标记当前的信息
 
     strlist_head_init(&gen_list);
 
@@ -575,7 +694,7 @@ void cmoc_generation_and_save(const char *save_dir)
         strlist_for_each_entry(pos, &gen_list)
         {
             if (pos->str != NULL) {
-                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                fwrite(pos->str, 1, strlen(pos->str), pf);
                 //printf("%s", pos->str);
             }
         }
@@ -588,7 +707,7 @@ void cmoc_generation_and_save(const char *save_dir)
         strlist_for_each_entry(pos, &gen_list)
         {
             if (pos->str != NULL) {
-                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                fwrite(pos->str, 1, strlen(pos->str), pf);
                 //printf("%s", pos->str);
             }
         }
@@ -596,21 +715,21 @@ void cmoc_generation_and_save(const char *save_dir)
     }
 
     cstr = "#endif"NL;
-    fwrite(cstr, 1, strlen(cstr), pfin);
-    fflush(pfin);
-    fclose(pfin);
+    fwrite(cstr, 1, strlen(cstr), pf);
+    fflush(pf);
+    fclose(pf);
 
     //保存声明文件
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_dec.h");
-    pfin = fopen(target_name, "wb+");
-    if (pfin == NULL)
+    pf = fopen(target_name, "wb+");
+    if (pf == NULL)
 	{
 		perror("fopen fail:");
 		exit(-1);
 	}
 
     cstr = "#ifndef _SIGNAL_SLOT_DEC_H_"NL"#define _SIGNAL_SLOT_DEC_H_"NL NL NL;
-    fwrite(cstr, 1, strlen(cstr), pfin);
+    fwrite(cstr, 1, strlen(cstr), pf);
 
     strlist_head_init(&gen_list);
 
@@ -620,7 +739,7 @@ void cmoc_generation_and_save(const char *save_dir)
         strlist_for_each_entry(pos, &gen_list)
         {
             if (pos->str != NULL) {
-                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                fwrite(pos->str, 1, strlen(pos->str), pf);
                 //printf("%s", pos->str);
             }
         }
@@ -633,16 +752,16 @@ void cmoc_generation_and_save(const char *save_dir)
         strlist_for_each_entry(pos, &gen_list)
         {
             if (pos->str != NULL) {
-                fwrite(pos->str, 1, strlen(pos->str), pfin);
+                fwrite(pos->str, 1, strlen(pos->str), pf);
                 //printf("%s", pos->str);
             }
         }
         strlist_destruct(&gen_list);
     }
     cstr = "#endif"NL;
-    fwrite(cstr, 1, strlen(cstr), pfin);
-    fflush(pfin);
-    fclose(pfin);
+    fwrite(cstr, 1, strlen(cstr), pf);
+    fflush(pf);
+    fclose(pf);
 }
 
 const char *signal_define = \

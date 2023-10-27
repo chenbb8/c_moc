@@ -16,6 +16,13 @@ void cmoc_init(void);
 bool cmoc_preprocess_file(const char *file_name);
 
 /**
+* @brief 判断是否需要生成文件
+* @param[in] save_dir 保存生成文件的路径
+* @return 是否需要生成文件
+*/
+bool cmoc_check_need_save(const char *save_dir);
+
+/**
 * @brief 将预处理提取的关键字，生成对应的文件
 * @param[in] save_dir 保存生成文件的路径
 */

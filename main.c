@@ -245,7 +245,10 @@ int main(int argc, char *argv[])
     }
 
     //将预处理提取的函数列表，生成对应的文件
-    cmoc_generation_and_save(NULL);
+    if (cmoc_check_need_save(NULL))
+    {
+        cmoc_generation_and_save(NULL);
+    }
 
 //    system("pause");
     return 0;
