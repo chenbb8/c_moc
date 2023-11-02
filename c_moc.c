@@ -15,7 +15,7 @@
 #define NL "\r\n"
 #endif
 
-#define CMOC_VER "0.0.1"
+#define CMOC_VER "0.0.2"
 
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
@@ -268,23 +268,30 @@ static char* cmoc_param_list_2_str(char *param_str, int size_str, strlist_t *par
     strlist_t *pos;
     assert(size_str > 1);
 
-    param_str[0] = '\0';
-    size_str -= 1;//最后的'\0'不存放东西
-    strlist_for_each_entry(pos, param_list)
+    if (list_empty(&param_list->list))
     {
-        int len = strlen(param_str);
-        if (len >= size_str) {
-            break;
-        }
-//        if (list_is_first(&pos->list, &param_list->list))
-//        {
-//            snprintf(param_str+len, size_str-len, "%s p%d", pos->str, idx);
-//        }
-//        else
+        strcpy(param_str, "void");
+    }
+    else
+    {
+        param_str[0] = '\0';
+        size_str -= 1;//最后的'\0'不存放东西
+        strlist_for_each_entry(pos, param_list)
         {
-            snprintf(param_str+len, size_str-len, ", %s p%d", pos->str, idx);
+            int len = strlen(param_str);
+            if (len >= size_str) {
+                break;
+            }
+            if (list_is_first(&pos->list, &param_list->list))
+            {
+                snprintf(param_str+len, size_str-len, "%s p%d", pos->str, idx);
+            }
+            else
+            {
+                snprintf(param_str+len, size_str-len, ", %s p%d", pos->str, idx);
+            }
+            idx++;
         }
-        idx++;
     }
     return param_str;
 }
@@ -556,12 +563,12 @@ static void cmoc_info_mask(FILE* pf)
     fwrite(cstr, 1, strlen(cstr), pf);
     for (int i = 0; i < signal_numb; ++i)
     {
-        snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)"NL, signal_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
+        snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)"NL, signal_info[i].name, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
         fwrite(mask_per, 1, strlen(mask_per), pf);
     }
     for (int i = 0; i < slot_numb; ++i)
     {
-        snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)"NL, slot_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
+        snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)"NL, slot_info[i].name, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
         fwrite(mask_per, 1, strlen(mask_per), pf);
     }
     cstr = "INFO_MASK_START"NL"*/"NL NL NL;
@@ -624,7 +631,7 @@ bool cmoc_check_need_save(const char *save_dir)
         {
             for (int i = 0; i < signal_numb; ++i)
             {
-                snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)", signal_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
+                snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)", signal_info[i].name, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
                 if (memcmp(line_str, mask_per, strlen(mask_per)) == 0)
                 {
                     match_signal++;
@@ -639,7 +646,7 @@ bool cmoc_check_need_save(const char *save_dir)
         {
             for (int i = 0; i < slot_numb; ++i)
             {
-                snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)", slot_info[i].name, cmoc_param_list_2_str_no_type(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
+                snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)", slot_info[i].name, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
                 if (memcmp(line_str, mask_per, strlen(mask_per)) == 0)
                 {
                     match_slot++;
@@ -766,15 +773,15 @@ void cmoc_generation_and_save(const char *save_dir)
 
 const char *signal_define = \
 "/*define signal: void $NAME($PARAM_TYPE_NAME)*/"NL\
-"typedef void (*$NAME_t)(struct _signal_slot_node * sender$PARAM_TYPE_NAME);"NL\
-"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"typedef void (*$NAME_t)($PARAM_TYPE_NAME);"NL\
+"void $NAME($PARAM_TYPE_NAME);"NL\
 "struct _signal_slot_node $NAME_head = {"NL\
 "    .self_node = USER_LIST_HEAD_INIT($NAME_head.self_node),"NL\
 "    .signal_node = USER_LIST_HEAD_INIT($NAME_head.signal_node),"NL\
 "    .func = $NAME,"NL\
 "    .signals = NULL,"NL\
 "};"NL\
-"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME)"NL\
+"void $NAME($PARAM_TYPE_NAME)"NL\
 "{"NL\
 "    SIGNAL_SEND($NAME$PARAM_NAME);"NL\
 "}" NL NL NL;
@@ -782,12 +789,12 @@ const char *signal_define = \
 
 const char *signal_declaration = \
 "/*declaration signal: void $NAME($PARAM_TYPE_NAME)*/"NL\
-"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"void $NAME($PARAM_TYPE_NAME);"NL\
 "extern struct _signal_slot_node $NAME_head;"NL NL NL;
 
 const char *slot_define = \
 "/*define slot: void $NAME($PARAM_TYPE_NAME)*/"NL\
-"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"void $NAME($PARAM_TYPE_NAME);"NL\
 "struct _signal_slot_node $NAME_head = { "NL\
 "    .self_node = USER_LIST_HEAD_INIT($NAME_head.self_node), "NL\
 "    .signal_node = USER_LIST_HEAD_INIT($NAME_head.signal_node), "NL\
@@ -797,6 +804,6 @@ const char *slot_define = \
 
 const char *slot_declaration = \
 "/*declaration slot: void $NAME($PARAM_TYPE_NAME)*/"NL\
-"void $NAME(struct _signal_slot_node *sender$PARAM_TYPE_NAME);"NL\
+"void $NAME($PARAM_TYPE_NAME);"NL\
 "extern struct _signal_slot_node $NAME_head;"NL NL NL;
 
