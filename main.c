@@ -183,6 +183,7 @@ int main(int argc, char *argv[])
     strlist_t c_list;//源文件列表
     strlist_t path_list;//配置文件中读取的路径
     strlist_t *pos;
+//    char include_path1[1024*1024];
 
     //设置当前工作路径为可执行文件所在的路径
     if (argv[0] != NULL)
@@ -230,19 +231,45 @@ int main(int argc, char *argv[])
         filesearch(pos->str, ".h", &h_list);
         filesearch(pos->str, ".c", &c_list);
     }
+    //设置include_path
+    #define INCLUDE_PATH_SIZE 1024*1024
+    char *include_path = malloc(INCLUDE_PATH_SIZE);
+    int str_curr = 0;//当前写入的索引
+    if (include_path == NULL)
+    {
+        perror("alloc fail");
+		exit(-1);
+    }
+
+    include_path[0] = '\0';
+    strlist_for_each_entry(pos, &path_list)
+    {
+        if (pos->str != NULL)
+        {
+            int numb = snprintf(&include_path[str_curr], INCLUDE_PATH_SIZE-str_curr, "-I%s ", pos->str);
+            if (numb > 0) {
+                str_curr += numb;
+                if (str_curr >= INCLUDE_PATH_SIZE) {
+                    break;
+                }
+            }
+        }
+    }
+
     //预处理：根据相应关键字，从头文件和源文件的列表中提取对应的函数列表
     strlist_for_each_entry(pos, &h_list)
     {
-        if (cmoc_preprocess_file(pos->str)) {
+        if (cmoc_preprocess_file(pos->str, include_path)) {
             printf("%s\n", pos->str);
         }
     }
     strlist_for_each_entry(pos, &c_list)
     {
-        if (cmoc_preprocess_file(pos->str)) {
+        if (cmoc_preprocess_file(pos->str, include_path)) {
             printf("%s\n", pos->str);
         }
     }
+    free(include_path);
 
     //将预处理提取的函数列表，生成对应的文件
     if (cmoc_check_need_save(NULL))

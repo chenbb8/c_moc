@@ -11,9 +11,10 @@ void cmoc_init(void);
 /**
 * @brief 预处理文件，提取出关键字
 * @param[in] file_name 需要预处理的文件
+* @param[in] include_path 查找头文件的路径
 * @return 是否有检测到相应关键字
 */
-bool cmoc_preprocess_file(const char *file_name);
+bool cmoc_preprocess_file(const char *file_name, const char *include_path);
 
 /**
 * @brief 判断是否需要生成文件

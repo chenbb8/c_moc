@@ -15,7 +15,7 @@
 #define NL "\r\n"
 #endif
 
-#define CMOC_VER "0.0.2"
+#define CMOC_VER "0.0.3"
 
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
@@ -412,22 +412,61 @@ static bool cmoc_extract_keyword(const char *src, const char *keyword, signal_sl
 }
 
 /**
-* @brief 预处理文件，提取出关键字对应的函数名和参数
+* @brief 预处理文件，提取出关键字
 * @param[in] file_name 需要预处理的文件
+* @param[in] include_path 查找头文件的路径
 * @return 是否有检测到相应关键字
 */
-bool cmoc_preprocess_file(const char *file_name)
+bool cmoc_preprocess_file(const char *file_name, const char *include_path)
 {
-    char line_str[LINE_MAX];
+    char *line_str;
     bool ret = false;
+    bool is_popen = true;
+    FILE* fp;
 
-    FILE* fp = fopen(file_name, "rb");/*注意需要以rb+或者wb+的方式打开文件，因为在windows环境下，不带b的版本可能会在读写文件的时候，遇到\n自动增减一个/r*/
+    //有simplecpp.exe则提前预处理，没有则直接读取
+    if (access("./simplecpp.exe", F_OK) != 0)
+    {
+        fp = fopen(file_name, "rb");/*注意需要以rb+或者wb+的方式打开文件，因为在windows环境下，不带b的版本可能会在读写文件的时候，遇到\n自动增减一个/r*/
 
-    if (fp == NULL)
-	{
-		perror("fopen fail:");
+        if (fp == NULL)
+        {
+            perror("fopen fail:");
+            return 0;
+        }
+        is_popen = false;
+    }
+    else
+    {
+        #define INCLUDE_PATH_SIZE (1024*1024+100)
+        char *include_str = malloc(INCLUDE_PATH_SIZE);
+        if (include_str == NULL) {
+            perror("malloc fail:");
+            exit(-1);
+        }
+        if (include_path != NULL)
+        {
+            snprintf(include_str, INCLUDE_PATH_SIZE, ".\\simplecpp.exe %s %s", include_path, file_name);
+        }
+        else
+        {
+            snprintf(include_str, INCLUDE_PATH_SIZE, ".\\simplecpp.exe %s", file_name);
+        }
+        fp = popen(include_str, "r");
+        free(include_str);
+
+        if (fp == NULL)
+        {
+            perror("popen fail:");
+            return 0;
+        }
+    }
+
+    line_str = malloc(LINE_MAX);
+    if (line_str == NULL) {
+        perror("malloc fail:");
 		exit(-1);
-	}
+    }
 
 	while (fgets(line_str, LINE_MAX, fp) != NULL)
     {
@@ -439,6 +478,16 @@ bool cmoc_preprocess_file(const char *file_name)
         if (cmoc_extract_keyword(line_str, "signal", signal_info, &signal_numb)) {
             ret = true;
         }
+    }
+    free(line_str);
+
+    if (is_popen)
+    {
+        pclose(fp);
+    }
+    else
+    {
+        fclose(fp);
     }
 
     //TEST:打印检索出来的signal和slot
@@ -589,7 +638,8 @@ bool cmoc_check_need_save(const char *save_dir)
     FILE* pf;
     int match_slot = 0;
     int match_signal = 0;
-    int match_other = 0;
+    int unmatch_numb = 0;
+    int i;
 
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_dec.h");
     if (access(target_name, F_OK) != 0)
@@ -608,8 +658,15 @@ bool cmoc_check_need_save(const char *save_dir)
 		exit(-1);
 	}
 
-    char line_str[LINE_MAX];
+    char *line_str;
     bool isMaskStart = false;
+
+
+    line_str = malloc(LINE_MAX);
+    if (line_str == NULL) {
+        perror("malloc fail:");
+		exit(-1);
+    }
     while (fgets(line_str, LINE_MAX, pf) != NULL)
     {
         if (!isMaskStart)
@@ -629,7 +686,7 @@ bool cmoc_check_need_save(const char *save_dir)
         cstr = "signal:";
         if (memcmp(line_str, cstr, strlen(cstr)) == 0)
         {
-            for (int i = 0; i < signal_numb; ++i)
+            for (i = 0; i < signal_numb; ++i)
             {
                 snprintf(mask_per, NAME_PARAM_MAX, "signal:%s(%s)", signal_info[i].name, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &signal_info[i].param_list));
                 if (memcmp(line_str, mask_per, strlen(mask_per)) == 0)
@@ -638,13 +695,16 @@ bool cmoc_check_need_save(const char *save_dir)
                     break;
                 }
             }
+            if (i >= signal_numb) {//没匹配的
+                unmatch_numb++;
+            }
             continue;
         }
         //匹配slot
         cstr = "slot:";
         if (memcmp(line_str, cstr, strlen(cstr)) == 0)
         {
-            for (int i = 0; i < slot_numb; ++i)
+            for (i = 0; i < slot_numb; ++i)
             {
                 snprintf(mask_per, NAME_PARAM_MAX, "slot:%s(%s)", slot_info[i].name, cmoc_param_list_2_str(param_str, NAME_PARAM_MAX, &slot_info[i].param_list));
                 if (memcmp(line_str, mask_per, strlen(mask_per)) == 0)
@@ -653,10 +713,15 @@ bool cmoc_check_need_save(const char *save_dir)
                     break;
                 }
             }
+            if (i >= slot_numb) {//没匹配的
+                unmatch_numb++;
+            }
             continue;
         }
     }
-    if ((match_signal==signal_numb)&&(match_slot==slot_numb))
+    free(line_str);
+
+    if ((match_signal==signal_numb)&&(match_slot==slot_numb)&&(unmatch_numb==0))
     {
         return false;
     }

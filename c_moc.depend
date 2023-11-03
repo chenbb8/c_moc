@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1698317513 source:f:\codeblocks\c_moc\main.c
+1698972834 source:f:\codeblocks\c_moc\main.c
 	<stdio.h>
 	<stdlib.h>
 	<windows.h>
@@ -25,7 +25,7 @@
 1698044294 f:\codeblocks\c_moc\list.h
 	<stdint.h>
 
-1698379362 source:f:\codeblocks\c_moc\c_moc.c
+1698975143 source:f:\codeblocks\c_moc\c_moc.c
 	<string.h>
 	<stdio.h>
 	<stdlib.h>
@@ -34,7 +34,7 @@
 	<unistd.h>
 	"str_list.h"
 
-1698312321 f:\codeblocks\c_moc\c_moc.h
+1698928642 f:\codeblocks\c_moc\c_moc.h
 	<stdbool.h>
 
 1698055618 f:\codeblocks\c_moc\def.h
