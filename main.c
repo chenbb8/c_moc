@@ -11,13 +11,15 @@
 
 #define CONFIG_NAME "cmoc_conf.txt"
 
+#define STR2(S) #S
+
 /**
-* @brief 循环查找目录下的对应扩展名的文件
+* @brief 查找目录下的对应扩展名的文件
 * @param[in] path 需要查找的目录
 * @param[in] extension 需要查找的文件扩展名
 * @param[out] filelist 查找到的文件列表
 */
-void filesearch(const char* path, const char* extension, strlist_t *filelist)
+void search_file(const char* path, const char* extension, strlist_t *filelist)
 {
     struct _finddata_t filefind;
     char* tail = "\\*.*";
@@ -25,9 +27,67 @@ void filesearch(const char* path, const char* extension, strlist_t *filelist)
     char final[1000];
     char no_shash_dir[1000];
 
-    assert(path!=NULL);
+    if ((path == NULL)||(strlen(path)==0)) {
+        perror("path error:\n" __FILE__ " @ " STR2(__LINE__));
+		exit(-1);
+    }
     assert(extension!=NULL);
     assert(filelist!=NULL);
+
+    strcpy(no_shash_dir,path);
+    //去掉最后的//
+    endstr = strrchr(no_shash_dir, '\\');
+    if (endstr != NULL)
+    {
+        if (strcmp(endstr, "\\")==0)
+        {
+            *endstr = '\0';
+        }
+    }
+    strcpy(final, no_shash_dir);
+    strcat(final, tail);
+
+    int done = 0, handle;
+    if((handle = _findfirst(final, &filefind)) != -1)
+    {
+        while(!(done = _findnext(handle, &filefind)))
+        {
+            if(strcmp(filefind.name, "..") == 0)
+                continue;
+            if((_A_SUBDIR != filefind.attrib))              // 不是目录
+            {
+                endstr = strrchr(filefind.name, '.');
+                if(endstr!=NULL && strcmpi(strrchr(filefind.name, '.'), extension)==0)  //指定文件的后缀
+                {
+                    char fileName[1000];
+
+                    snprintf(fileName, sizeof fileName, "%s\\%s", no_shash_dir, filefind.name);
+                    strlist_append_str(filelist, fileName, strlen(fileName));
+                }
+            }
+        }
+        _findclose(handle);
+    }
+}
+
+/**
+* @brief 递归查找目录下的各个子目录的路径名
+* @param[in] path 需要查找的目录
+* @param[out] sublist 查找到的子目录路径列表
+*/
+void search_dir_recursive(const char* path, strlist_t *sublist)
+{
+    struct _finddata_t filefind;
+    char* tail = "\\*.*";
+    char* endstr;
+    char final[1000];
+    char no_shash_dir[1000];
+
+    if ((path == NULL)||(strlen(path)==0)) {
+        perror("path error:\n" __FILE__ " @ " STR2(__LINE__));
+		exit(-1);
+    }
+    assert(sublist!=NULL);
 
     strcpy(no_shash_dir,path);
     //去掉最后的//
@@ -56,21 +116,29 @@ void filesearch(const char* path, const char* extension, strlist_t *filelist)
                 strcpy(out,no_shash_dir);
                 strcat(out,"\\");
                 strcat(out,filefind.name);
-                filesearch(out, extension, filelist);       // 递归遍历子目录
-            }
-            else
-            {
-                endstr = strrchr(filefind.name, '.');
-                if(endstr!=NULL && strcmpi(strrchr(filefind.name, '.'), extension)==0)  //指定文件的后缀
-                {
-                    char fileName[1000];
-
-                    snprintf(fileName, sizeof fileName, "%s\\%s", no_shash_dir, filefind.name);
-                    strlist_append_str(filelist, fileName, strlen(fileName));
-                }
+                strlist_append_str(sublist, out, strlen(out));
+                search_dir_recursive(out, sublist);// 递归遍历子目录
             }
         }
         _findclose(handle);
+    }
+}
+
+/**
+* @brief 替换路径中的'/'为'\'
+* @param[in,out] path_list 需要替换斜杠的路径列表
+*/
+void replace_slash(strlist_t *path_list)
+{
+    strlist_t *pos;
+    strlist_for_each_entry(pos, path_list)
+    {
+        for (int i; pos->str[i] != '\0'; ++i)
+        {
+            if (pos->str[i] == '/') {
+                pos->str[i] = '\\';
+            }
+        }
     }
 }
 
@@ -93,8 +161,16 @@ void config_creat(void)
     //成功时返回0，出错时返回错误代码
     //使用conf_error函数可打印错误代码的信息
 
-    conf_insert(conf,NULL,NULL,"cmoc的配置文件\n#每个key后可填入多个键值；键值间用','号连接，键值间不允许留有空格；如果键值比如路径上有特殊符号，则必须用\"\"将这段键值包裹起来\n");
-    conf_insert(conf,"include_path",".","include_path：循环包含的路径(最好使用相对于c_moc.exe的相对路径，例如： /,\"../src folder\")");
+    conf_insert(conf,NULL,NULL,"cmoc的配置文件\n\
+                #注1：每个key后可填入多个键值；\n\
+                #注2：键值间用','号连接，键值间不允许留有空格；\
+                #注3：如果键值比如路径上有特殊符号，则必须用\"\"将这段键值包裹起来\n\
+                #注4：最好使用相对于c_moc.exe的相对路径\n\
+                #例如： process_path_recursive = .,\"../src folder\"\n");
+    conf_insert(conf,NULL,NULL,"process_path：处理的路径");
+    conf_insert(conf,"process_path_recursive",".","process_path_recursive：递归处理的路径");
+    conf_insert(conf,NULL,NULL,"inlcude_path：预处理步骤中包含的路径（仅在有simplecpp存在的时候生效）");
+    conf_insert(conf,"include_path_recursive",".","include_path_recursive：预处理步骤中递归包含的路径（仅在有simplecpp存在的时候生效）");
 
     //保存配置文件
     conf_save(conf);
@@ -116,13 +192,20 @@ void config_backup_and_create(void)
 }
 
 /**
-* @brief 获取配置文件中记录的路径
+* @brief 获取配置文件中记录的对应配置
+* @param[in] key 需要获取的键值
+* @param[out] path_list 从中读取的对应配置的列表
+* @return 是否有读取到数据
 */
-void config_get_dir(strlist_t *path_list)
+bool config_get(const char *key, strlist_t *path_list)
 {
     CONF *conf; //需要的数据结构
     CONF_VALUE *value; //键/值参数数据结构
     int code; //返回的错误代码
+    int retval = false;
+
+    assert(key!=NULL);
+    assert(path_list!=NULL);
 
     conf_pos_msg_err(1);//允许报错
     while (1)
@@ -143,29 +226,27 @@ void config_get_dir(strlist_t *path_list)
             conf_error(code);
 //            //释放内存 解析失败的时候已经释放了
 //            conf_free(conf);
+            printf("configuration file parse error, create a default configuration file\n");
             config_backup_and_create();//备份当前配置文件，然后创建默认配置文件
             continue;
         }
         //取出一个参数
-        value=conf_value_get(conf,"include_path");
+        value=conf_value_get(conf,key);
         //如果有该参数时返回
         //否则返回一个NULL
         if ((value != NULL)&&(value->value[0]!=NULL))//最少有一个值
         {
             for (int i = 0; value->value[i]!=NULL; ++i)
             {
-                printf("include_path%-2d=%s\n", i, value->value[i]);
+                printf("key %s%-2d=%s\n", key, i, value->value[i]);
                 strlist_append_str(path_list,value->value[i], strlen(value->value[i]));
+                retval = true;
             }
-            break;
         }
         else {
-            printf("key value include_path does not exist\n");
-            config_backup_and_create();//备份当前配置文件，然后创建默认配置文件
-            //释放内存
-            conf_free(conf);
-            continue;
+            printf("key value %s does not exist\n", key);
         }
+        break;
     }
 
 //    //得到当前配置文件中键的个数
@@ -173,6 +254,8 @@ void config_get_dir(strlist_t *path_list)
 
     //释放内存
     conf_free(conf);
+
+    return retval;
 }
 
 int main(int argc, char *argv[])
@@ -181,9 +264,10 @@ int main(int argc, char *argv[])
 
     strlist_t h_list;//头文件列表
     strlist_t c_list;//源文件列表
-    strlist_t path_list;//配置文件中读取的路径
+    strlist_t process_dir_list;//配置文件中读取的处理路径
+    strlist_t include_list;//配置文件中读取的包含路径
+    strlist_t read_list;
     strlist_t *pos;
-//    char include_path1[1024*1024];
 
     //设置当前工作路径为可执行文件所在的路径
     if (argv[0] != NULL)
@@ -214,23 +298,59 @@ int main(int argc, char *argv[])
     //初始化链表
     strlist_head_init(&h_list);
     strlist_head_init(&c_list);
-    strlist_head_init(&path_list);
+    strlist_head_init(&process_dir_list);
+    strlist_head_init(&include_list);
+    strlist_head_init(&read_list);
 
-    config_get_dir(&path_list);//获取配置文件中记录的路径
-
-    //根据配置文件中的路径获取源文件和头文件列表
-    strlist_for_each_entry(pos, &path_list)
+    while (1)
     {
-        //替换'/'为'\'
-        for (int i; pos->str[i] != '\0'; ++i)
+        //获取配置文件中记录的处理路径
+        if (config_get("process_path_recursive",&read_list))
         {
-            if (pos->str[i] == '/') {
-                pos->str[i] = '\\';
+            strlist_for_each_entry(pos,&read_list)
+            {
+                //提取循环包含路径下的子路径
+                strlist_append_str(&process_dir_list, pos->str, strlen(pos->str));
+                search_dir_recursive(pos->str, &process_dir_list);
             }
+            strlist_destruct(&read_list);
         }
-        filesearch(pos->str, ".h", &h_list);
-        filesearch(pos->str, ".c", &c_list);
+        config_get("process_path",&process_dir_list);
+        if (list_empty(&process_dir_list.list))//必须要指定路径，否则使用默认配置文件
+        {
+            printf("process_path_recursive or process_path does not exist, create a default configuration file\n");
+            config_backup_and_create();
+            continue;
+        }
+
+        replace_slash(&process_dir_list);//替换路径中的'/'为'\'
+        //根据配置文件中的路径获取源文件和头文件列表
+        strlist_for_each_entry(pos, &process_dir_list)
+        {
+            search_file(pos->str, ".h", &h_list);
+            search_file(pos->str, ".c", &c_list);
+        }
+        break;
     }
+
+    //获取配置文件中记录的路径
+    if (config_get("include_path_recursive",&read_list))
+    {
+        strlist_for_each_entry(pos,&read_list)
+        {
+            //提取循环包含路径下的子路径
+            strlist_append_str(&include_list, pos->str, strlen(pos->str));
+            search_dir_recursive(pos->str, &include_list);
+        }
+        strlist_destruct(&read_list);
+    }
+    config_get("include_path",&include_list);
+    if (list_empty(&include_list.list))//没有指定路径则使用默认的路径"."
+    {
+        strlist_append_str(&include_list, ".", strlen("."));
+    }
+
+    replace_slash(&include_list);//替换路径中的'/'为'\'
     //设置include_path
     #define INCLUDE_PATH_SIZE 1024*1024
     char *include_path = malloc(INCLUDE_PATH_SIZE);
@@ -240,9 +360,8 @@ int main(int argc, char *argv[])
         perror("alloc fail");
 		exit(-1);
     }
-
     include_path[0] = '\0';
-    strlist_for_each_entry(pos, &path_list)
+    strlist_for_each_entry(pos, &include_list)
     {
         if (pos->str != NULL)
         {
@@ -270,6 +389,12 @@ int main(int argc, char *argv[])
         }
     }
     free(include_path);
+    strlist_destruct(&h_list);
+    strlist_destruct(&c_list);
+    strlist_destruct(&process_dir_list);
+    strlist_destruct(&include_list);
+
+
 
     //将预处理提取的函数列表，生成对应的文件
     if (cmoc_check_need_save(NULL))

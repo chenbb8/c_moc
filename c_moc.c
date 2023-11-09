@@ -15,7 +15,7 @@
 #define NL "\r\n"
 #endif
 
-#define CMOC_VER "0.0.3"
+#define CMOC_VER "0.0.4"
 
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
