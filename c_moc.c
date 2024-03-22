@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <assert.h>
 #include <unistd.h>
+#include <windows.h>
+#include <io.h>
+#include <sys/stat.h>
 #include "str_list.h"
 
 #define NAME_PARAM_MAX              1024
@@ -15,7 +18,7 @@
 #define NL "\r\n"
 #endif
 
-#define CMOC_VER "0.0.4"
+#define CMOC_VER "0.0.5"
 
 enum {
     CMOC_LABEL_NONE = STRLIST_LABEL_USER,
@@ -746,6 +749,7 @@ void cmoc_generation_and_save(const char *save_dir)
 
     //保存定义文件
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_def.h");
+    chmod(target_name, S_IREAD|S_IWRITE);
     pf = fopen(target_name, "wb+");
     if (pf == NULL)
 	{
@@ -790,9 +794,12 @@ void cmoc_generation_and_save(const char *save_dir)
     fwrite(cstr, 1, strlen(cstr), pf);
     fflush(pf);
     fclose(pf);
+//    SetFileAttributes(target_name, FILE_ATTRIBUTE_READONLY); // 设定为只读
+    chmod(target_name, S_IREAD);
 
     //保存声明文件
     cmoc_path_name(target_name, sizeof target_name, save_dir, "signal_slot_dec.h");
+    chmod(target_name, S_IREAD|S_IWRITE);
     pf = fopen(target_name, "wb+");
     if (pf == NULL)
 	{
@@ -834,6 +841,8 @@ void cmoc_generation_and_save(const char *save_dir)
     fwrite(cstr, 1, strlen(cstr), pf);
     fflush(pf);
     fclose(pf);
+//    SetFileAttributes(target_name, FILE_ATTRIBUTE_READONLY); // 设定为只读
+    chmod(target_name, S_IREAD);
 }
 
 const char *signal_define = \

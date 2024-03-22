@@ -121,7 +121,7 @@ int conf_parse(CONF *conf)
 	//得到长度
 	file_len=ftell(conf->fp);
 	rewind(conf->fp);
-	//加载 
+	//加载
 	data=malloc(sizeof(char)*file_len+1);
 	//最后一个字符为0
 	data[file_len]='\0';
@@ -137,7 +137,7 @@ int conf_parse(CONF *conf)
 	//解析
 	retcode=parse_value(conf,data);
 	free(data);
-	
+
 	return retcode;
 }
 
@@ -194,7 +194,7 @@ int conf_insert(CONF_CREATER *creater,char *key,char *value,char *note)
 		creater->value=value;
 		creater->note=note;
 		creater->next=NULL;
-		
+
 		return CONF_OK;
 	}
 
@@ -374,9 +374,16 @@ redo:
 					while(isspace(POP))
 						ADVANCE;
 				goto redo;
+            case '\r'://增加'\r'的处理，以修复换行符为CRLF的配置文件读取错误的问题   chenbb8
 			case '\n':
 				if(save_status == conf_stat_normal)
-					ADVANCE;
+                {
+                    //当换行符为'\r'、'\n'、'\r\n'时候，都可以换行
+                    if (POP=='\r')
+                        ADVANCE;
+                    if (POP=='\n')
+                        ADVANCE;
+                }
 				else
 				{
 					retcode=CONF_NO_VALUE;

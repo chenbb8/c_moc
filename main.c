@@ -163,7 +163,7 @@ void config_creat(void)
 
     conf_insert(conf,NULL,NULL,"cmoc的配置文件\n\
                 #注1：每个key后可填入多个键值；\n\
-                #注2：键值间用','号连接，键值间不允许留有空格；\
+                #注2：键值间用','号连接，键值间不允许留有空格；\n\
                 #注3：如果键值比如路径上有特殊符号，则必须用\"\"将这段键值包裹起来\n\
                 #注4：最好使用相对于c_moc.exe的相对路径\n\
                 #例如： process_path_recursive = .,\"../src folder\"\n");
